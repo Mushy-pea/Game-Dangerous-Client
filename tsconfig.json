@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "lib": ["ES5", "ES6", "DOM"],
+    "module": "es6",
+    "noImplicitAny": false,
+    "removeComments": true
+  },
+  "files": [
+    "index.ts",
+    "RenderGPLC.ts"
+  ]
+}
+

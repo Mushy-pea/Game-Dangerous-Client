@@ -1,16 +1,13 @@
 {
   "name": "Game-Dangerous-Client",
   "version": "0.5.0",
-  "description": "The client side of the Game Dangerous map editor, paired with the server side in Mushy-pea/Game-Dangerous.",
-  "main": "client.js",
-  "repository": "https://github.com/Mushy-pea/Game-Dangerous-Client",
+  "description": "The Game Dangerous map development client is a front end web application to complement the Game Dangerous map development server.",
+  "main": "index.js",
+  "repository": "https://github.com/Mushy-pea/Game-Dangerous-Client.git",
   "author": "Steven Tinsley <steven.tinsley81@gmail.com>",
   "license": "Custom",
   "private": false,
-  "dependencies": {
-    "@types/node": "^18.15.10"
-  },
   "devDependencies": {
-    "typescript": "^5.0.2"
+    "typescript": "^5.1.6"
   }
 }
