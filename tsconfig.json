@@ -7,7 +7,9 @@
   },
   "files": [
     "index.ts",
-    "RenderGPLC.ts"
+    "API_Types.ts",
+    "./logic-components/ServerInterface.ts",
+    "./UI-components/GPLC_UI.ts"
   ]
 }
 
