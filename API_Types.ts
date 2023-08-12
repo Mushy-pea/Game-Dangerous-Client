@@ -36,13 +36,6 @@ type ObjGrid = {
   programName : string
 };
 
-type GPLC_Program = {
-  name : string,
-  hash : string,
-  source : string,
-  bytecode : string
-};
-
 type Token = {
   line : number,
   column : number,
@@ -50,5 +43,30 @@ type Token = {
   textColour : string
 };
 
-export { Command, ObjPlace, WallGrid, FloorGrid, ObjGrid, GPLC_Program, Token};
+type GPLC_Program = {
+  name : string,
+  hash : string,
+  source : string,
+  bytecode : string
+};
+
+type MapAccessor = {
+  getWallGrid : Function,
+  getFloorGrid : Function,
+  getObjGrid : Function,
+  setWallGridStructure : Function,
+  setWallGridTextures: Function,
+  setObjPlace : Function,
+  setFloorGrid : Function,
+  setObjGrid : Function,
+  updateWallGrid : Function,
+  updateFloorGrid : Function,
+  updateObjGrid : Function,
+  uMaxWall : number,
+  vMaxWall : number,
+  uMaxFloor : number,
+  vMaxFloor : number
+};
+
+export { Command, ObjPlace, WallGrid, FloorGrid, ObjGrid, GPLC_Program, Token, MapAccessor};
 
