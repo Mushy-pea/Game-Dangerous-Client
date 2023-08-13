@@ -4,8 +4,8 @@ var baseURL = "http://localhost/command";
 
 async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number, vMaxFloor : number)
                       : Promise <API_Types.MapAccessor> {
-  function mapIndices(u : number, v : number, uMax : number) : number {
-    return (uMax + 1) * u + v;
+  function mapIndices(u : number, v : number, vMax : number, iMax : number) : number {
+    return iMax - (vMax + 1) * u - v;
   }
 
   function boolToInt(x : boolean) : number {
@@ -42,27 +42,29 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
   const objGrid0 = await loadMapLayer(0, 0, 0, uMaxWall, vMaxWall, "Obj_grid");
   const objGrid1 = await loadMapLayer(1, 0, 0, uMaxWall, vMaxWall, "Obj_grid");
   const objGrid2 = await loadMapLayer(2, 0, 0, uMaxWall, vMaxWall, "Obj_grid");
+  const iMaxWall = wallGrid0.length - 1;
+  const iMaxFloor = floorGrid0.length - 1;
 
   const getWallGrid = (w : number, u : number, v : number) : API_Types.WallGrid => {
     let grid;
     if (w === 0) { grid = wallGrid0 }
     else if (w === 1) { grid = wallGrid1 }
     else { grid = wallGrid2 }
-    return grid[mapIndices(u, v, uMaxWall)];
+    return grid[mapIndices(u, v, vMaxWall, iMaxWall)];
   };
   const getFloorGrid = (w : number, u : number, v : number) : API_Types.FloorGrid => {
     let grid;
     if (w === 0) { grid = floorGrid0 }
     else if (w === 1) { grid = floorGrid1 }
     else { grid = floorGrid2 }
-    return grid[mapIndices(u, v, uMaxFloor)];
+    return grid[mapIndices(u, v, vMaxFloor, iMaxFloor)];
   };
   const getObjGrid = (w : number, u : number, v : number) : API_Types.ObjGrid => {
     let grid;
     if (w === 0) { grid = objGrid0 }
     else if (w === 1) { grid = objGrid1 }
     else { grid = objGrid2 }
-    return grid[mapIndices(u, v, uMaxWall)];
+    return grid[mapIndices(u, v, vMaxWall, iMaxWall)];
   };
   const updateWallGrid = async (w : number, u : number, v : number) : Promise<boolean> => {
     const newVoxel = await loadMapLayer(w, u, v, u, v, "Wall_grid");
@@ -70,7 +72,7 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
     if (w === 0) { grid = wallGrid0 }
     else if (w === 1) { grid = wallGrid1 }
     else { grid = wallGrid2 }
-    grid[mapIndices(u, v, uMaxWall)] = newVoxel[0];
+    grid[mapIndices(u, v, vMaxWall, iMaxWall)] = newVoxel[0];
     return new Promise<boolean>((resolve) => {resolve(true)});
   };
   const updateFloorGrid = async (w : number, u : number, v : number) : Promise<boolean> => {
@@ -79,7 +81,7 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
     if (w === 0) { grid = floorGrid0 }
     else if (w === 1) { grid = floorGrid1 }
     else { grid = floorGrid2 }
-    grid[mapIndices(u, v, uMaxFloor)] = newVoxel[0];
+    grid[mapIndices(u, v, vMaxFloor, iMaxFloor)] = newVoxel[0];
     return new Promise<boolean>((resolve) => {resolve(true)});
   };
   const updateObjGrid = async (w : number, u : number, v : number) : Promise<boolean> => {
@@ -88,7 +90,7 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
     if (w === 0) { grid = objGrid0 }
     else if (w === 1) { grid = objGrid1 }
     else { grid = objGrid2 }
-    grid[mapIndices(u, v, uMaxWall)] = newVoxel[0];
+    grid[mapIndices(u, v, vMaxWall, iMaxWall)] = newVoxel[0];
     return new Promise<boolean>((resolve) => {resolve(true)});
   };
   const setWallGridStructure = async (w : number, u : number, v : number,
