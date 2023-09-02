@@ -120,19 +120,28 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
     const newVoxel = await loadMapLayer(w, u, v, u, v, "Wall_grid");
     const grid = selectGrid(wallGrid0, wallGrid1, wallGrid2, w);
     grid[mapIndices(u, v, vMaxWall, iMaxWall)] = newVoxel[0];
-    return new Promise<boolean>((resolve) => {resolve(true)});
+    return new Promise<boolean>((resolve, reject) => {
+      if (newVoxel === null) { reject(false) }
+      else { resolve(true) }
+    });
   };
   const updateFloorGrid = async (w : number, u : number, v : number) : Promise<boolean> => {
     const newVoxel = await loadMapLayer(w, u, v, u, v, "Floor_grid");
     const grid = selectGrid(floorGrid0, floorGrid1, floorGrid2, w);
     grid[mapIndices(u, v, vMaxFloor, iMaxFloor)] = newVoxel[0];
-    return new Promise<boolean>((resolve) => {resolve(true)});
+    return new Promise<boolean>((resolve, reject) => {
+      if (newVoxel === null) { reject(false) }
+      else { resolve(true) }
+    });
   };
   const updateObjGrid = async (w : number, u : number, v : number) : Promise<boolean> => {
     const newVoxel = await loadMapLayer(w, u, v, u, v, "Obj_grid");
     const grid = selectGrid(objGrid0, objGrid1, objGrid2, w);
     grid[mapIndices(u, v, vMaxWall, iMaxWall)] = newVoxel[0];
-    return new Promise<boolean>((resolve) => {resolve(true)});
+    return new Promise<boolean>((resolve, reject) => {
+      if (newVoxel === null) { reject(false) }
+      else { resolve(true) }
+    });
   };
   const setWallGridStructure = async (w : number, u : number, v : number,
                                       u1_structure : boolean, u2_structure : boolean,
@@ -144,8 +153,12 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
                   `${boolToInt(u1_structure)}`, `${boolToInt(u2_structure)}`,
                   `${boolToInt(v1_structure)}`, `${boolToInt(v2_structure)}`]
     };
-    await serverWriteRequest(command);
-    return updateWallGrid(w, u, v);
+    const writeSuccess = await serverWriteRequest(command);
+    const updateSuccess = await updateWallGrid(w, u, v);
+    return new Promise<boolean>((resolve, reject) => {
+      if (writeSuccess && updateSuccess) { resolve(true) }
+      else { reject(false) }
+    });
   };
   const setWallGridTextures = async (w : number, u : number, v : number,
                                      u1_texture : number, u2_texture : number,
@@ -156,8 +169,12 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
       arguments: ["Wall_grid", "textures", `${w}`, `${u}`, `${v}`,
                   `${u1_texture}`, `${u2_texture}`, `${v1_texture}`, `${v2_texture}`]
     };
-    await serverWriteRequest(command);
-    return updateWallGrid(w, u, v);
+    const writeSuccess = await serverWriteRequest(command);
+    const updateSuccess = await updateWallGrid(w, u, v);
+    return new Promise<boolean>((resolve, reject) => {
+      if (writeSuccess && updateSuccess) { resolve(true) }
+      else { reject(false) }
+    });
   };
   const setObjPlace = async (w : number, u : number, v : number,
                              modelIdent : number, u__ : number, v__ : number, w__ : number,
@@ -168,8 +185,12 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
       arguments: ["Wall_grid", "Obj_place", `${w}`, `${u}`, `${v}`, `${modelIdent}`,
                   `${u__}`, `${v__}`, `${w__}`, `${texture}`, `${numElem}`, `${objFlag}`]
     };
-    await serverWriteRequest(command);
-    return updateWallGrid(w, u, v);
+    const writeSuccess = await serverWriteRequest(command);
+    const updateSuccess = await updateWallGrid(w, u, v);
+    return new Promise<boolean>((resolve, reject) => {
+      if (writeSuccess && updateSuccess) { resolve(true) }
+      else { reject(false) }
+    });
   };
   const setFloorGrid = async (w : number, u : number, v : number, height : number, terrain : string)
                              : Promise<boolean> => {
@@ -177,8 +198,12 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
       keyword: "write",
       arguments: ["Floor_grid", `${w}`, `${u}`, `${v}`, `${height}`, `${terrain}`]
     };
-    await serverWriteRequest(command);
-    return updateFloorGrid(w, u, v);
+    const writeSuccess = await serverWriteRequest(command);
+    const updateSuccess = await updateFloorGrid(w, u, v);
+    return new Promise<boolean>((resolve, reject) => {
+      if (writeSuccess && updateSuccess) { resolve(true) }
+      else { reject(false) }
+    });
   };
   const setObjGrid = async (w : number, u : number, v : number,
                             objType : number, program : number[]) : Promise<boolean> => {
@@ -188,8 +213,12 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
       keyword: "write",
       arguments: args
     };
-    await serverWriteRequest(command);
-    return updateObjGrid(w, u, v);
+    const writeSuccess = await serverWriteRequest(command);
+    const updateSuccess = await updateObjGrid(w, u, v);
+    return new Promise<boolean>((resolve, reject) => {
+      if (writeSuccess && updateSuccess) { resolve(true) }
+      else { reject(false) }
+    });
   };
 
   const result = new Promise<API_Types.MapAccessor>((resolve) => {
