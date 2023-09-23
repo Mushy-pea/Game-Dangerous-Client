@@ -9,7 +9,8 @@
     "index.ts",
     "API_Types.ts",
     "./logic-components/ServerInterface.ts",
-    "./UI-components/GPLC_UI.ts"
+    "./UI-components/GPLC_UI.ts",
+    "./UI-components/GameBoard.ts"
   ]
 }
 
