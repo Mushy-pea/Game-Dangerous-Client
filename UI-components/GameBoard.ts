@@ -148,9 +148,36 @@ function mapCursorToGrid(position : CursorPosition, scale : number) : GridPositi
   return {w: 0, u: u, v: v};
 }
 
+function findWallHovered(voxelHovered : GridPosition, cursorPosition : CursorPosition,
+                         scale : number) : string {
+  function isSamePos(position : GridPosition, u : number, v : number) : boolean {
+    if (position.u === u && position.v === v) { return true }
+    else { return false }
+  }
+  const innerPos = mapCursorToGrid(cursorPosition, scale * 0.2);
+  innerPos.u -= voxelHovered.u * 5;
+  innerPos.v -= voxelHovered.v * 5;
+  if (isSamePos(innerPos, 0, 1) || isSamePos(innerPos, 0, 2) || isSamePos(innerPos, 0, 3)) {
+    return "u1";
+  }
+  else if (isSamePos(innerPos, 1, 4) || isSamePos(innerPos, 2, 4) || isSamePos(innerPos, 3, 4)) {
+    return "v2";
+  }
+  else if (isSamePos(innerPos, 4, 3) || isSamePos(innerPos, 4, 2) || isSamePos(innerPos, 4, 1)) {
+    return "u2";
+  }
+  else if (isSamePos(innerPos, 3, 0) || isSamePos(innerPos, 2, 0) || isSamePos(innerPos, 1, 0)) {
+    return "v1";
+  }
+  else {
+    return "notWall";
+  }
+}
+
 function onVoxelHover(gameBoard : CanvasRenderingContext2D, mapInterface : API_Types.MapAccessor,
                       gridOffset : GridOffset, lastVoxelHovered : GridPosition,
-                      selectedVoxel : GridPosition, cursorPosition : CursorPosition, scale : number)
+                      selectedVoxel : GridPosition, wallHovered : {wall : string},
+                      cursorPosition : CursorPosition, scale : number)
                      : void {
   const gridPosition = mapCursorToGrid(cursorPosition, scale);
   const gridPositionRend = {u: gridPosition.u, v: gridPosition.v};
@@ -164,8 +191,6 @@ function onVoxelHover(gameBoard : CanvasRenderingContext2D, mapInterface : API_T
   };
   gridPosition.u += gridOffset.uMin;
   gridPosition.v += gridOffset.vMin;
-  console.log(`gridPosition.u: ${gridPosition.u} gridPosition.v: ${gridPosition.v}`);
-  console.log(`lastVoxelHovered.u: ${lastVoxelHovered.u} lastVoxelHovered.v: ${lastVoxelHovered.v}`);
   if (gridPosition.u !== lastVoxelHovered.u || gridPosition.v !== lastVoxelHovered.v) {
     gameBoard.fillStyle = "rgba(0, 0, 192, 0.5)";
     gameBoard.fillRect(gridPositionRend.v * scale, gridPositionRend.u * scale, scale, scale);
@@ -184,12 +209,14 @@ function onVoxelHover(gameBoard : CanvasRenderingContext2D, mapInterface : API_T
     lastVoxelHovered.u = gridPosition.u;
     lastVoxelHovered.v = gridPosition.v;
   }
+  wallHovered.wall = findWallHovered(lastVoxelHovered, cursorPosition, scale);
 }
 
-function selectVoxel(gameBoard : CanvasRenderingContext2D, mapInterface : API_Types.MapAccessor,
-                     gridOffset : GridOffset, lastVoxelHovered : GridPosition,
-                     selectedVoxel : GridPosition, scale : number)
-                    : void {
+async function selectVoxel(gameBoard : CanvasRenderingContext2D,
+                           mapInterface : API_Types.MapAccessor,
+                           gridOffset : GridOffset, lastVoxelHovered : GridPosition,
+                           selectedVoxel : GridPosition, wallHovered : {wall : string},
+                           scale : number) : Promise<boolean> {
   const lastVoxelHoveredRend = {
     u: lastVoxelHovered.u - gridOffset.uMin,
     v: lastVoxelHovered.v - gridOffset.vMin
@@ -203,10 +230,29 @@ function selectVoxel(gameBoard : CanvasRenderingContext2D, mapInterface : API_Ty
   gameBoard.fillStyle = "rgb(256, 256, 256)";
   gameBoard.fillRect(selectedVoxelRend.v * scale, selectedVoxelRend.u * scale, scale, scale);
   gameBoard.fillStyle = "rgb(0, 0, 192)";
-  drawGrid(gameBoard, mapInterface, gridOffset, selectedVoxel.u, selectedVoxel.v, scale, "singular");
+  drawGrid(gameBoard, mapInterface, gridOffset, selectedVoxel.u, selectedVoxel.v, scale,
+    "singular");
   selectedVoxel.u = lastVoxelHovered.u;
   selectedVoxel.v = lastVoxelHovered.v;
-  console.log(`selectedVoxel.u: ${selectedVoxel.u} selectedVoxel.v: ${selectedVoxel.v}`);
+  if (wallHovered.wall !== "notWall") {
+    const thisVoxel = mapInterface.getWallGrid(selectedVoxel.w, selectedVoxel.u, selectedVoxel.v);
+    let u1 = thisVoxel.u1_structure, u2 = thisVoxel.u2_structure, v1 = thisVoxel.v1_structure,
+    v2 = thisVoxel.v2_structure;
+    if (wallHovered.wall === "u1") { u1 =! u1 }
+    else if (wallHovered.wall === "u2") { u2 =! u2 }
+    else if (wallHovered.wall === "v1") { v1 =! v1 }
+    else { v2 =! v2 }
+    const success = await mapInterface.setWallGridStructure(selectedVoxel.w, selectedVoxel.u,
+      selectedVoxel.v, u1, u2, v1, v2);
+    if (success) {
+      drawGrid(gameBoard, mapInterface, gridOffset, selectedVoxel.u, selectedVoxel.v, scale,
+        "singular");
+    }
+    else {
+      console.log(`selectVoxel: setWallGridStructure failed`);
+    }
+    return new Promise<boolean>((resolve) => {resolve(true)});
+  }
 }
 
 export { updateGridOffset, captureCursor, drawGrid, onVoxelHover, selectVoxel };

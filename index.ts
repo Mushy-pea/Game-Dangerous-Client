@@ -39,14 +39,16 @@ async function main() {
   const selectedVoxel = {w: 0, u: 0, v: 0};
   const scale = 75;
   const gridOffset = {uMin: 0, uMax: 11, vMin: 0, vMax: 15};
+  const wallHovered = {wall: "notWall"};
+
   document.onmousemove = event => GameBoard.captureCursor(canvas, event, cursorPosition);
   document.onmousedown = event => GameBoard.selectVoxel(gameBoard, mapInterface, gridOffset,
-    lastVoxelHovered, selectedVoxel, scale);
+    lastVoxelHovered, selectedVoxel, wallHovered, scale);
   document.onkeydown = event => GameBoard.updateGridOffset(event, gridOffset, gameBoard,
     mapInterface, scale, mapDim.uMaxWall, mapDim.vMaxWall);
   GameBoard.drawGrid(gameBoard, mapInterface, gridOffset, 0, 0, scale, "iterative");
   setInterval(GameBoard.onVoxelHover, 40, gameBoard, mapInterface, gridOffset, lastVoxelHovered,
-              selectedVoxel, cursorPosition, scale);
+              selectedVoxel, wallHovered, cursorPosition, scale);
 }
 
 main();
