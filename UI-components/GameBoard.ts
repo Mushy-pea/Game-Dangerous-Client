@@ -26,6 +26,8 @@ type VoxelPoints = {
   v2 : number[]
 };
 
+// This function handles the user inputs that control the field of view within the game board
+// component, by updating the gridOffset object.
 function updateGridOffset(event : KeyboardEvent, gridOffset : GridOffset,
                           gameBoard : CanvasRenderingContext2D,
                           mapInterface : API_Types.MapAccessor,
@@ -131,8 +133,8 @@ function drawGrid(gameBoard : CanvasRenderingContext2D, mapInterface : API_Types
   }
 }
 
-// These four functions manage a UI interaction whereby the user can select the active voxel
-// on the grid.
+// By passing the appropriate scale argument to mapCursorToGrid, the cursor positions returned by
+// captureCursor can be mapped to either a voxel on the game board or a wall element within a voxel.
 function captureCursor(canvas : HTMLCanvasElement, event : MouseEvent, position : CursorPosition)
                       : void {
   const rect = canvas.getBoundingClientRect();
@@ -148,13 +150,16 @@ function mapCursorToGrid(position : CursorPosition, scale : number) : GridPositi
   return {w: 0, u: u, v: v};
 }
 
-function findWallHovered(voxelHovered : GridPosition, cursorPosition : CursorPosition,
-                         scale : number) : string {
+// This function maps the cursor position to a wall element within a voxel.
+function findWallHovered(voxelHovered : GridPosition, gridOffset : GridOffset,
+                         cursorPosition : CursorPosition, scale : number) : string {
   function isSamePos(position : GridPosition, u : number, v : number) : boolean {
     if (position.u === u && position.v === v) { return true }
     else { return false }
   }
   const innerPos = mapCursorToGrid(cursorPosition, scale * 0.2);
+  innerPos.u += gridOffset.uMin * 5;
+  innerPos.v += gridOffset.vMin * 5;
   innerPos.u -= voxelHovered.u * 5;
   innerPos.v -= voxelHovered.v * 5;
   if (isSamePos(innerPos, 0, 1) || isSamePos(innerPos, 0, 2) || isSamePos(innerPos, 0, 3)) {
@@ -174,6 +179,8 @@ function findWallHovered(voxelHovered : GridPosition, cursorPosition : CursorPos
   }
 }
 
+// This function maps the cursor position to a voxel on the game board and updates lastVoxelHovered,
+// which is key to the voxel hovering and selection actions in the UI.
 function onVoxelHover(gameBoard : CanvasRenderingContext2D, mapInterface : API_Types.MapAccessor,
                       gridOffset : GridOffset, lastVoxelHovered : GridPosition,
                       selectedVoxel : GridPosition, wallHovered : {wall : string},
@@ -191,11 +198,15 @@ function onVoxelHover(gameBoard : CanvasRenderingContext2D, mapInterface : API_T
   };
   gridPosition.u += gridOffset.uMin;
   gridPosition.v += gridOffset.vMin;
+  if (gridPosition.u < 0 || gridPosition.u > mapInterface.uMaxWall ||
+      gridPosition.v < 0 || gridPosition.v > mapInterface.vMaxWall) { return }
+
   if (gridPosition.u !== lastVoxelHovered.u || gridPosition.v !== lastVoxelHovered.v) {
     gameBoard.fillStyle = "rgba(0, 0, 192, 0.5)";
     gameBoard.fillRect(gridPositionRend.v * scale, gridPositionRend.u * scale, scale, scale);
     gameBoard.fillStyle = "rgb(256, 256, 256)";
-    gameBoard.fillRect(lastVoxelHoveredRend.v * scale, lastVoxelHoveredRend.u * scale, scale, scale);
+    gameBoard.fillRect(lastVoxelHoveredRend.v * scale, lastVoxelHoveredRend.u * scale, scale,
+      scale);
     gameBoard.fillStyle = "rgb(0, 0, 192)";
     drawGrid(gameBoard, mapInterface, gridOffset, lastVoxelHovered.u, lastVoxelHovered.v, scale,
       "singular");
@@ -209,9 +220,11 @@ function onVoxelHover(gameBoard : CanvasRenderingContext2D, mapInterface : API_T
     lastVoxelHovered.u = gridPosition.u;
     lastVoxelHovered.v = gridPosition.v;
   }
-  wallHovered.wall = findWallHovered(lastVoxelHovered, cursorPosition, scale);
+  wallHovered.wall = findWallHovered(lastVoxelHovered, gridOffset, cursorPosition, scale);
 }
 
+// This function implements the UI actions for selecting an active voxel on the game board and
+// changing the state of a wall element within it.
 async function selectVoxel(gameBoard : CanvasRenderingContext2D,
                            mapInterface : API_Types.MapAccessor,
                            gridOffset : GridOffset, lastVoxelHovered : GridPosition,
