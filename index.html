@@ -4,14 +4,20 @@
         <meta charset="utf-8">
         <title>Game :: Dangerous map editor</title>
         <script src="index.js" type="module" defer></script>
-        <style>
-            canvas {
-                border: 2px solid black
-            }
-        </style>
+        <link href="style.css" rel="stylesheet">
     </head>
-    <body style="background-color: #FFFFFF">
-        <canvas id="gameBoard" width="1280" height="960"></canvas>
+    <body>
+        <div id="container">
+            <canvas id="gameBoard"></canvas>
+            <div id="dataBox">
+                <p id="voxelHovered">
+
+                </p>
+                <p id="gameBoardViewPort">
+
+                </p>
+            </div>
+        </div>
     </body>
 </html>
 

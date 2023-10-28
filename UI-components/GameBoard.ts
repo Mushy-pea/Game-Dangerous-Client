@@ -32,7 +32,7 @@ function updateGridOffset(event : KeyboardEvent, gridOffset : GridOffset,
                           gameBoard : CanvasRenderingContext2D,
                           mapInterface : API_Types.MapAccessor,
                           scale : number, mapU_Max : number, mapV_Max : number) : void {
-  const step = 2;
+  const step = 1;
   let newU_Min = gridOffset.uMin;
   let newU_Max = gridOffset.uMax;
   let newV_Min = gridOffset.vMin;
@@ -62,8 +62,13 @@ function updateGridOffset(event : KeyboardEvent, gridOffset : GridOffset,
     gridOffset.vMin = newV_Min;
     gridOffset.vMax = newV_Max;
     gameBoard.fillStyle = "rgb(256, 256, 256)";
-    gameBoard.fillRect(0, 0, scale * 16, scale * 12);
+    gameBoard.fillRect(0, 0, scale * (gridOffset.vMax - gridOffset.vMin + 1),
+      scale * (gridOffset.uMax - gridOffset.uMin + 1));
     drawGrid(gameBoard, mapInterface, gridOffset, 0, 0, scale, "iterative");
+    const gameBoardViewPort = document.getElementById("gameBoardViewPort");
+    gameBoardViewPort.innerText =
+      `Game board viewport ((uMin, uMax), (vMin, vMax)): ((${gridOffset.uMin}, ${gridOffset.uMax}),\ 
+(${gridOffset.vMin}, ${gridOffset.vMax}))`;
   }
 }
 
@@ -118,7 +123,9 @@ function drawGrid(gameBoard : CanvasRenderingContext2D, mapInterface : API_Types
     while (u <= gridOffset.uMax) {
       const points = generateGrid(u, v, scale, gridOffset);
       const voxel : API_Types.WallGrid = mapInterface.getWallGrid(0, u, v);
-      drawVoxel(points, voxel);
+      if (voxel !== null) {
+        drawVoxel(points, voxel);
+      }
       v++;
       if (v > gridOffset.vMax) {
         v = 0;
@@ -157,6 +164,7 @@ function findWallHovered(voxelHovered : GridPosition, gridOffset : GridOffset,
     if (position.u === u && position.v === v) { return true }
     else { return false }
   }
+
   const innerPos = mapCursorToGrid(cursorPosition, scale * 0.2);
   innerPos.u += gridOffset.uMin * 5;
   innerPos.v += gridOffset.vMin * 5;
@@ -219,6 +227,10 @@ function onVoxelHover(gameBoard : CanvasRenderingContext2D, mapInterface : API_T
     gameBoard.fillRect(selectedVoxelRend.v * scale, selectedVoxelRend.u * scale, scale, scale);
     lastVoxelHovered.u = gridPosition.u;
     lastVoxelHovered.v = gridPosition.v;
+
+    const voxelHovered = document.getElementById("voxelHovered");
+    voxelHovered.innerText =
+      `Cursor is over voxel (u, v): (${lastVoxelHovered.u}, ${lastVoxelHovered.v})`;
   }
   wallHovered.wall = findWallHovered(lastVoxelHovered, gridOffset, cursorPosition, scale);
 }

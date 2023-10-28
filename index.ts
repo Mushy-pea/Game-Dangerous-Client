@@ -9,36 +9,45 @@ async function main() {
   const mapInterface = await ServerInterface.loadMap(
     mapDim.uMaxWall, mapDim.vMaxWall, mapDim.uMaxFloor, mapDim.vMaxFloor
   );
-
-  // Test code to confirm that the client to server interface is working as expected.
-  // console.log(`Wall_grid (0, 10, 10): ${JSON.stringify(mapInterface.getWallGrid(0, 10, 10))}`);
-  // console.log(`Floor_grid (0, 5, 5): ${JSON.stringify(mapInterface.getFloorGrid(0, 5, 5))}`);
-  // console.log(`Obj_grid (0, 10, 10): ${JSON.stringify(mapInterface.getObjGrid(0, 10, 10))}`);
-  // const setSuccess0 = await mapInterface.setWallGridStructure(0, 10, 10, true, true, false, false);
-  // if (setSuccess0 === false) { console.log("mapInterface.setWallGridStructure failed") }
-
-  // const setSuccess1 = await mapInterface.setWallGridTextures(0, 10, 10, 128, 129, 130, 131);
-  // if (setSuccess1 === false) { console.log("mapInterface.setWallGridTextures failed") }
-
-  // const setSuccess2 = await mapInterface.setObjPlace(0, 10, 10, 132, 133, 134, 135, 136, 137, 138);
-  // if (setSuccess2 === false) { console.log("mapInterface.setObjPlace failed") }
-  
-  // const setSuccess3 = await mapInterface.setFloorGrid(0, 5, 5, 139, "Open");
-  // if (setSuccess3 === false) { console.log("mapInterface.setFloorGrid failed") }
-
-  // const setSuccess4 = await mapInterface.setObjGrid(0, 10, 10, 3, [140, 141, 142, 143]);
-  // if (setSuccess4 === false) { console.log("mapInterface.setObjGrid failed") }
-  // console.log(`Wall_grid (0, 10, 10): ${JSON.stringify(mapInterface.getWallGrid(0, 10, 10))}`);
-  // console.log(`Floor_grid (0, 5, 5): ${JSON.stringify(mapInterface.getFloorGrid(0, 5, 5))}`);
-  // console.log(`Obj_grid (0, 10, 10): ${JSON.stringify(mapInterface.getObjGrid(0, 10, 10))}`);
+  const windowWidth = window.innerWidth;
+  const windowHeight = window.innerHeight;
+  let boardWidth;
+  let boardHeight;
+  if (windowWidth <= 1280 || windowHeight <= 720) {
+    boardWidth = 720;
+    boardHeight = 540;
+  }
+  else if (windowWidth <= 1920 || windowHeight <= 1080) {
+    boardWidth = 1152;
+    boardHeight = 864;
+  }
+  else if (windowWidth <= 2560 || windowHeight <= 1440) {
+    boardWidth = 1600;
+    boardHeight = 1200;
+  }
+  else if (windowWidth <= 3200 || windowHeight <= 1800) {
+    boardWidth = 2000;
+    boardHeight = 1600;
+  }
+  else {
+    boardWidth = 2560;
+    boardHeight = 1920;
+  }
 
   const canvas = <HTMLCanvasElement>document.getElementById("gameBoard");
+  const scale = 75;
+  canvas.width = Math.trunc(boardWidth / scale) * scale;
+  canvas.height = Math.trunc(boardHeight / scale) * scale;
+  console.log(`Window dimensions detected: ${windowWidth} * ${windowHeight}`);
+  console.log(`Game board component sized to: ${boardWidth} * ${boardHeight}`);
   const gameBoard = canvas.getContext("2d");
   const cursorPosition = {x: 0, y: 0};
   const lastVoxelHovered = {w: 0, u: 0, v: 0};
   const selectedVoxel = {w: 0, u: 0, v: 0};
-  const scale = 75;
-  const gridOffset = {uMin: 0, uMax: 11, vMin: 0, vMax: 15};
+  const gridOffset = {
+    uMin: 0, uMax: Math.trunc(boardHeight / scale) - 1,
+    vMin: 0, vMax: Math.trunc(boardWidth / scale) - 1
+  };
   const wallHovered = {wall: "notWall"};
 
   document.onmousemove = event => GameBoard.captureCursor(canvas, event, cursorPosition);

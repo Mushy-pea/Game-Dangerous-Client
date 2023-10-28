@@ -1,0 +1,16 @@
+body {
+  background-color: #FFFFFF
+}
+
+canvas {
+  border: 4px solid #000000
+}
+
+#container {
+  display: flex
+}
+
+#dataBox {
+  margin: 10px
+}
+
