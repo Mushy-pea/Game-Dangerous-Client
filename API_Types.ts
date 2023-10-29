@@ -65,5 +65,5 @@ type MapAccessor = {
   vMaxFloor : number
 };
 
-export { Command, ObjPlace, WallGrid, FloorGrid, ObjGrid, GPLC_Program, Token, MapAccessor};
+export { Command, ObjPlace, WallGrid, FloorGrid, ObjGrid, GPLC_Program, Token, MapAccessor };
 

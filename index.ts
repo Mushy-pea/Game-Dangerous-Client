@@ -54,7 +54,7 @@ async function main() {
   document.onmousedown = event => GameBoard.selectVoxel(gameBoard, mapInterface, gridOffset,
     lastVoxelHovered, selectedVoxel, wallHovered, scale);
   document.onkeydown = event => GameBoard.updateGridOffset(event, gridOffset, gameBoard,
-    mapInterface, scale, mapDim.uMaxWall, mapDim.vMaxWall);
+    mapInterface, scale, mapInterface.uMaxWall, mapInterface.vMaxWall);
   GameBoard.drawGrid(gameBoard, mapInterface, gridOffset, 0, 0, scale, "iterative");
   setInterval(GameBoard.onVoxelHover, 40, gameBoard, mapInterface, gridOffset, lastVoxelHovered,
               selectedVoxel, wallHovered, cursorPosition, scale);

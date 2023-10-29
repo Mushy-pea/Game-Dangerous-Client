@@ -1,30 +1,6 @@
 import * as API_Types from "../API_Types.js";
-
-type CursorPosition = {
-  x : number,
-  y : number
-};
-
-type GridPosition = {
-  w : number,
-  u : number,
-  v : number
-};
-
-type GridOffset = {
-  uMin : number,
-  uMax : number,
-  vMin : number,
-  vMax : number
-};
-
-type VoxelPoints = {
-  boundary : number[],
-  u1 : number[],
-  u2 : number[],
-  v1 : number[],
-  v2 : number[]
-};
+import { CursorPosition, GridPosition, GridOffset, VoxelPoints } from "./UI_Types.js";
+import { inspectVoxel } from "./DataBox.js";
 
 // This function handles the user inputs that control the field of view within the game board
 // component, by updating the gridOffset object.
@@ -136,7 +112,9 @@ function drawGrid(gameBoard : CanvasRenderingContext2D, mapInterface : API_Types
   else {
     const points = generateGrid(singleU, singleV, scale, gridOffset);
     const voxel : API_Types.WallGrid = mapInterface.getWallGrid(0, singleU, singleV);
-    drawVoxel(points, voxel);
+    if (voxel !== null) {
+      drawVoxel(points, voxel);
+    }
   }
 }
 
@@ -206,8 +184,8 @@ function onVoxelHover(gameBoard : CanvasRenderingContext2D, mapInterface : API_T
   };
   gridPosition.u += gridOffset.uMin;
   gridPosition.v += gridOffset.vMin;
-  if (gridPosition.u < 0 || gridPosition.u > mapInterface.uMaxWall ||
-      gridPosition.v < 0 || gridPosition.v > mapInterface.vMaxWall) { return }
+  if (gridPosition.u < 0 || gridPosition.u > gridOffset.uMax ||
+      gridPosition.v < 0 || gridPosition.v > gridOffset.vMax) { return }
 
   if (gridPosition.u !== lastVoxelHovered.u || gridPosition.v !== lastVoxelHovered.v) {
     gameBoard.fillStyle = "rgba(0, 0, 192, 0.5)";
@@ -278,6 +256,7 @@ async function selectVoxel(gameBoard : CanvasRenderingContext2D,
     }
     return new Promise<boolean>((resolve) => {resolve(true)});
   }
+  inspectVoxel(mapInterface, selectedVoxel);
 }
 
 export { updateGridOffset, captureCursor, drawGrid, onVoxelHover, selectVoxel };
