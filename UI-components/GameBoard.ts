@@ -245,16 +245,22 @@ async function selectVoxel(gameBoard : CanvasRenderingContext2D,
     else if (wallHovered.wall === "u2") { u2 =! u2 }
     else if (wallHovered.wall === "v1") { v1 =! v1 }
     else { v2 =! v2 }
-    const success = await mapInterface.setWallGridStructure(selectedVoxel.w, selectedVoxel.u,
-      selectedVoxel.v, u1, u2, v1, v2);
+    let success;
+    try {
+      success = await mapInterface.setWallGridStructure(selectedVoxel.w, selectedVoxel.u,
+        selectedVoxel.v, u1, u2, v1, v2);
+    }
+    catch(error) {
+      console.log(`setWallGridStructure : failed : ${error}`);
+    }
     if (success) {
       drawGrid(gameBoard, mapInterface, gridOffset, selectedVoxel.u, selectedVoxel.v, scale,
-        "singular");
+               "singular");
+      return new Promise<boolean>((resolve, reject) => {resolve(true)});
     }
     else {
-      console.log(`selectVoxel: setWallGridStructure failed`);
+      return new Promise<boolean>((resolve, reject) => {reject(false)});
     }
-    return new Promise<boolean>((resolve) => {resolve(true)});
   }
   inspectVoxel(mapInterface, selectedVoxel);
 }

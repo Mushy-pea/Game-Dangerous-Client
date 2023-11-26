@@ -77,13 +77,19 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
 
   async function serverWriteRequest(command : API_Types.Command) : Promise<boolean> {
     const commandStr = JSON.stringify(command);
-    const response = await fetch(baseURL, {
-      method: "POST",
-      headers: {
+    let response;
+    try {
+      response = await fetch(baseURL, {
+        method: "POST",
+        headers: {
         "Content-Type": "application/json"
       },
       body: commandStr
     });
+    }
+    catch(error) {
+      window.alert(`serverWriteRequest : failed : ${error}`);
+    }
     const result = new Promise<boolean>((resolve, reject) => {
       if (response.status === 200) {
         resolve(true);
@@ -135,7 +141,13 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
     }
   };
   const updateWallGrid = async (w : number, u : number, v : number) : Promise<boolean> => {
-    const newVoxel = await loadMapLayer(w, u, v, u, v, "Wall_grid");
+    let newVoxel;
+    try {
+      newVoxel = await loadMapLayer(w, u, v, u, v, "Wall_grid");
+    }
+    catch(error) {
+      window.alert(`updateWallGrid : failed : ${error}`);
+    }    
     const grid = selectGrid(wallGrid0, wallGrid1, wallGrid2, w);
     grid[mapIndices(u, v, vMaxWall, iMaxWall)] = newVoxel[0];
     return new Promise<boolean>((resolve, reject) => {
@@ -144,7 +156,13 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
     });
   };
   const updateFloorGrid = async (w : number, u : number, v : number) : Promise<boolean> => {
-    const newVoxel = await loadMapLayer(w, u, v, u, v, "Floor_grid");
+    let newVoxel;
+    try {
+      newVoxel = await loadMapLayer(w, u, v, u, v, "Floor_grid");
+    }
+    catch(error) {
+      window.alert(`updateFloorGrid : failed : ${error}`);
+    }    
     const grid = selectGrid(floorGrid0, floorGrid1, floorGrid2, w);
     grid[mapIndices(u, v, vMaxFloor, iMaxFloor)] = newVoxel[0];
     return new Promise<boolean>((resolve, reject) => {
@@ -153,7 +171,13 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
     });
   };
   const updateObjGrid = async (w : number, u : number, v : number) : Promise<boolean> => {
-    const newVoxel = await loadMapLayer(w, u, v, u, v, "Obj_grid");
+    let newVoxel;
+    try {
+      newVoxel = await loadMapLayer(w, u, v, u, v, "Obj_grid");
+    }
+    catch(error) {
+      window.alert(`updateObjGrid : failed : ${error}`);
+    }    
     const grid = selectGrid(objGrid0, objGrid1, objGrid2, w);
     grid[mapIndices(u, v, vMaxWall, iMaxWall)] = newVoxel[0];
     return new Promise<boolean>((resolve, reject) => {
@@ -177,8 +201,18 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
                     `${boolToInt(u1_structure)}`, `${boolToInt(u2_structure)}`,
                     `${boolToInt(v1_structure)}`, `${boolToInt(v2_structure)}`]
       };
-      writeSuccess = await serverWriteRequest(command);
-      updateSuccess = await updateWallGrid(w, u, v);
+      try {
+        writeSuccess = await serverWriteRequest(command);
+      }
+      catch (error) {
+        console.log(`setWallGridStructure : failed : ${error}`);
+      }
+      try {
+        updateSuccess = await updateWallGrid(w, u, v);
+      }
+      catch(error) {
+        console.log(`setWallGridStructure : failed : ${error}`)
+      }
     }
     return new Promise<boolean>((resolve, reject) => {
       if (writeSuccess && updateSuccess && withinBounds) { resolve(true) }
@@ -200,8 +234,18 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
         arguments: ["Wall_grid", "textures", `${w}`, `${u}`, `${v}`,
                     `${u1_texture}`, `${u2_texture}`, `${v1_texture}`, `${v2_texture}`]
       };
-      writeSuccess = await serverWriteRequest(command);
-      updateSuccess = await updateWallGrid(w, u, v);
+      try {
+        writeSuccess = await serverWriteRequest(command);
+      }
+      catch(error) {
+        console.log(`setWallGridTextures : failed : ${error}`);
+      }
+      try {
+        updateSuccess = await updateWallGrid(w, u, v);
+      }
+      catch(error) {
+        console.log(`setWallGridTextures : failed : ${error}`);
+      }      
     }
     return new Promise<boolean>((resolve, reject) => {
       if (writeSuccess && updateSuccess && withinBounds) { resolve(true) }
@@ -223,8 +267,18 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
         arguments: ["Wall_grid", "Obj_place", `${w}`, `${u}`, `${v}`, `${modelIdent}`,
                     `${u__}`, `${v__}`, `${w__}`, `${texture}`, `${numElem}`, `${objFlag}`]
       };
-      writeSuccess = await serverWriteRequest(command);
-      updateSuccess = await updateWallGrid(w, u, v);
+      try {
+        writeSuccess = await serverWriteRequest(command);
+      }
+      catch(error) {
+        console.log(`setObjPlace : failed : ${error}`);
+      }
+      try {
+        updateSuccess = await updateWallGrid(w, u, v);
+      }
+      catch(error) {
+        console.log(`setObjPlace : failed : ${error}`);
+      }      
     }
     return new Promise<boolean>((resolve, reject) => {
       if (writeSuccess && updateSuccess && withinBounds) { resolve(true) }
@@ -243,8 +297,18 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
         keyword: "write",
         arguments: ["Floor_grid", `${w}`, `${u}`, `${v}`, `${height}`, `${terrain}`]
       };
-      writeSuccess = await serverWriteRequest(command);
-      updateSuccess = await updateFloorGrid(w, u, v);
+      try {
+        writeSuccess = await serverWriteRequest(command);
+      }
+      catch(error) {
+        console.log(`setFloorGrid : failed : ${error}`);
+      }
+      try {
+        updateSuccess = await updateFloorGrid(w, u, v);
+      }
+      catch(error) {
+        console.log(`setFloorGrid : failed : ${error}`);
+      }      
     }
     return new Promise<boolean>((resolve, reject) => {
       if (writeSuccess && updateSuccess && withinBounds) { resolve(true) }
@@ -265,9 +329,19 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
         keyword: "write",
         arguments: args
       };
-      writeSuccess = await serverWriteRequest(command);
-      updateSuccess = await updateObjGrid(w, u, v);
-    }    
+      try {
+        writeSuccess = await serverWriteRequest(command);
+      }
+      catch(error) {
+        console.log(`setObjGrid : failed : ${error}`);
+      }
+      try {
+        updateSuccess = await updateObjGrid(w, u, v);
+      }
+      catch(error) {
+        console.log(`setObjGrid : failed : ${error}`);
+      }      
+    }
     return new Promise<boolean>((resolve, reject) => {
       if (writeSuccess && updateSuccess && withinBounds) { resolve(true) }
       else { reject(false) }

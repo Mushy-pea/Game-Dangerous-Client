@@ -1,7 +1,59 @@
 import * as API_Types from "../API_Types.js";
+import * as ServerInterface from "../logic-components/ServerInterface.js";
+import { checkProgramDiff, SymbolValue } from "../logic-components/HandleGPLC.js";
 import { GridPosition } from "./UI_Types.js";
 
-function inspectVoxel(mapInterface : API_Types.MapAccessor, selectedVoxel : GridPosition) : void {
+async function inspectProgram(objGrid : API_Types.ObjGrid) : Promise<SymbolValue[]> {
+  let deployedName;
+  const nullProgram = [{
+    symbol: "null",
+    value: 0,
+    diff: 0
+  }];
+  if (objGrid.programName !== null) {
+    deployedName = ((objGrid.programName).split(":"))[0];
+  }
+  else {
+    return new Promise<SymbolValue[]>((resolve) => { resolve(nullProgram) });
+  }  
+  let programSet;
+  try {
+    programSet = await ServerInterface.serverReadRequest({
+      keyword: "GPLC",
+      arguments: ["list", "null"]
+    });
+  }
+  catch(error) {
+    window.alert(`inspectProgram : failed(1) : ${error}`);
+    return new Promise<SymbolValue[]>((resolve, reject) => {
+      reject(null);
+    });
+  }
+  const i = programSet.findIndex((element) => {
+    if (element === deployedName) { return true }
+    else { return false }
+  });
+  let sourceProgram;
+  try {
+    if (i >= 0) {
+      sourceProgram = await ServerInterface.getProgram(i);
+    }
+    else { throw new Error("No matching program found") }
+  }
+  catch(error) {
+    return new Promise<SymbolValue[]>((resolve) => {
+      resolve(nullProgram);
+    });
+  }
+  const diff = checkProgramDiff(sourceProgram, objGrid);
+  return new Promise<SymbolValue[]>((resolve) => {
+    if (diff !== null) { resolve(diff) }
+    else { resolve(nullProgram) }
+  });
+}
+
+async function inspectVoxel(mapInterface : API_Types.MapAccessor, selectedVoxel : GridPosition)
+                           : Promise<Boolean> {
   const selectedVoxelId = document.getElementById("selectedVoxel");
   const wallStructure = document.getElementById("wallStructure");
   const wallTextures = document.getElementById("wallTextures");
@@ -36,9 +88,17 @@ function inspectVoxel(mapInterface : API_Types.MapAccessor, selectedVoxel : Grid
     }`;
   const objGrid : API_Types.ObjGrid =
     mapInterface.getObjGrid(selectedVoxel.w, selectedVoxel.u, selectedVoxel.v);
+  let programDiff;
+  try {
+    programDiff = await inspectProgram(objGrid);
+  }
+  catch(error) {
+    window.alert(`inspectProgram : failed : ${error}`);
+  }
   objGridId.innerHTML = `Object grid: {<br><div class="jsonLayer1">
     Object type: ${objGrid.objType}<br>
-    Program name: ${objGrid.programName}<br></div>
+    Program name: ${objGrid.programName}<br>
+    Program diff: ${JSON.stringify(programDiff)}<br></div>
     }`;
   const floorGrid : API_Types.FloorGrid =
     mapInterface.getFloorGrid(selectedVoxel.w,
@@ -47,6 +107,7 @@ function inspectVoxel(mapInterface : API_Types.MapAccessor, selectedVoxel : Grid
     Height: ${floorGrid.height},<br>
     surface: ${floorGrid.surface}<br></div>
     }`;
+  return new Promise<boolean>((resolve) => { resolve(true) });
 }
 
 export { inspectVoxel };

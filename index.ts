@@ -51,8 +51,15 @@ async function main() {
   const wallHovered = {wall: "notWall"};
 
   document.onmousemove = event => GameBoard.captureCursor(canvas, event, cursorPosition);
-  document.onmousedown = event => GameBoard.selectVoxel(gameBoard, mapInterface, gridOffset,
-    lastVoxelHovered, selectedVoxel, wallHovered, scale);
+  document.onmousedown = event => {
+    try {
+      GameBoard.selectVoxel(gameBoard, mapInterface, gridOffset,
+        lastVoxelHovered, selectedVoxel, wallHovered, scale);
+    }
+    catch(error) {
+      console.log(`selectVoxel : failed : ${error}`);
+    }    
+  };
   document.onkeydown = event => GameBoard.updateGridOffset(event, gridOffset, gameBoard,
     mapInterface, scale, mapInterface.uMaxWall, mapInterface.vMaxWall);
   GameBoard.drawGrid(gameBoard, mapInterface, gridOffset, 0, 0, scale, "iterative");
