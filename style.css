@@ -7,11 +7,27 @@ canvas {
 }
 
 #container {
-  display: flex
+  display: flex;
+  flex-direction: row
 }
 
 #dataBox {
-  margin: 10px
+  overflow: auto;
+  margin-left: 20px
+}
+
+#GPLC_CodePatch {
+  overflow: auto;
+  height: 100px;
+  margin: 20px;
+  background-color: #FFFFFF
+}
+
+#GPLC_Code {
+  overflow: auto;
+  height: 300px;
+  margin: 20px;
+  background-color: #FFFFFF
 }
 
 .jsonLayer1 {

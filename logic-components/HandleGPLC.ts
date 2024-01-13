@@ -6,6 +6,12 @@ type SymbolValue = {
   diff: number
 };
 
+const nullSymbolValue = {
+  symbol: "null",
+  value: 0,
+  diff: 0
+};
+
 function readSourceValues(source : API_Types.Token[]) : SymbolValue[] {
   const initialValues : SymbolValue[] = Array(0);
   for (let i = source.length - 1; i >= 0; i -= 2) {
@@ -63,5 +69,20 @@ function compareValues(sourceValues : SymbolValue[], bytecodeValues : SymbolValu
   else { return null }
 }
 
-export { checkProgramDiff, SymbolValue };
+//function mergeProgramDiff(source : API_Types.Token[], )
+
+function formatCode(source : API_Types.Token[]) : string {
+  let codeToRender = "";
+  for (let i = source.length - 1; i >= 0; i--) {
+    let tokenToRender = "";
+    if (i < source.length - 1 && source[i].line > source[i + 1].line) {
+      tokenToRender += "<br>";
+    }
+    tokenToRender += `<span style="color: ${source[i].textColour}">${source[i].content + " "}</span>`;
+    codeToRender += tokenToRender;
+  }
+  return codeToRender;
+}
+
+export { checkProgramDiff, formatCode, SymbolValue, nullSymbolValue };
 

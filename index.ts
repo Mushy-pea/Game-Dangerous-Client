@@ -9,6 +9,7 @@ async function main() {
   const mapInterface = await ServerInterface.loadMap(
     mapDim.uMaxWall, mapDim.vMaxWall, mapDim.uMaxFloor, mapDim.vMaxFloor
   );
+
   const windowWidth = window.innerWidth;
   const windowHeight = window.innerHeight;
   let boardWidth;
@@ -33,13 +34,16 @@ async function main() {
     boardWidth = 2560;
     boardHeight = 1920;
   }
-
   const canvas = <HTMLCanvasElement>document.getElementById("gameBoard");
   const scale = 75;
   canvas.width = Math.trunc(boardWidth / scale) * scale;
   canvas.height = Math.trunc(boardHeight / scale) * scale;
   console.log(`Window dimensions detected: ${windowWidth} * ${windowHeight}`);
   console.log(`Game board component sized to: ${boardWidth} * ${boardHeight}`);
+  
+  const dataBox = <HTMLDivElement>document.getElementById("dataBox");
+  dataBox.style.height = `${canvas.height}px`;
+  
   const gameBoard = canvas.getContext("2d");
   const cursorPosition = {x: 0, y: 0};
   const lastVoxelHovered = {w: 0, u: 0, v: 0};

@@ -50,6 +50,13 @@ type GPLC_Program = {
   bytecode : string
 };
 
+const nullGPLC_Program = {
+  name: "null",
+  hash: "null",
+  source : "null",
+  bytecode : "null"
+};
+
 type MapAccessor = {
   getWallGrid : Function,
   getFloorGrid : Function,
@@ -65,5 +72,6 @@ type MapAccessor = {
   vMaxFloor : number
 };
 
-export { Command, ObjPlace, WallGrid, FloorGrid, ObjGrid, GPLC_Program, Token, MapAccessor };
+export { Command, ObjPlace, WallGrid, FloorGrid, ObjGrid, GPLC_Program, Token, MapAccessor,
+         nullGPLC_Program };
 
