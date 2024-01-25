@@ -1,7 +1,25 @@
 import * as ServerInterface from "./logic-components/ServerInterface.js";
 import * as GameBoard from "./UI-components/GameBoard.js";
+import { formatCode, interpretConsole } from "./logic-components/HandleGPLC.js";
+
+async function checkConsole() : Promise<boolean> {
+  const GPLC_Console = <HTMLTextAreaElement>document.getElementById("GPLC_Console");
+  const GPLC_Code = document.getElementById("GPLC_Code");
+  const consoleOutput = await interpretConsole(GPLC_Console.value.trimEnd());
+  GPLC_Code.innerHTML = formatCode(consoleOutput);
+  GPLC_Console.value = "";
+  return new Promise<boolean>((resolve) => { resolve(true) });
+}
 
 async function main() {
+  function handleKeyDown(event : KeyboardEvent) : void {
+    if (event.code === "Enter") { checkConsole() }
+    else {
+      GameBoard.updateGridOffset(event, gridOffset, gameBoard,
+        mapInterface, scale, mapInterface.uMaxWall, mapInterface.vMaxWall);
+    }
+  }
+
   const mapDim = await ServerInterface.serverReadRequest({
     keyword: "metaData",
     arguments: ["null"]
@@ -46,8 +64,8 @@ async function main() {
   
   const gameBoard = canvas.getContext("2d");
   const cursorPosition = {x: 0, y: 0};
-  const lastVoxelHovered = {w: 0, u: 0, v: 0};
-  const selectedVoxel = {w: 0, u: 0, v: 0};
+  const lastVoxelHovered = {w: 0, u: 0, v: 0, outOfBounds: false};
+  const selectedVoxel = {w: 0, u: 0, v: 0, outOfBounds: false};
   const gridOffset = {
     uMin: 0, uMax: Math.trunc(boardHeight / scale) - 1,
     vMin: 0, vMax: Math.trunc(boardWidth / scale) - 1
@@ -64,8 +82,7 @@ async function main() {
       console.log(`selectVoxel : failed : ${error}`);
     }    
   };
-  document.onkeydown = event => GameBoard.updateGridOffset(event, gridOffset, gameBoard,
-    mapInterface, scale, mapInterface.uMaxWall, mapInterface.vMaxWall);
+  document.onkeydown = event => handleKeyDown(event);
   GameBoard.drawGrid(gameBoard, mapInterface, gridOffset, 0, 0, scale, "iterative");
   setInterval(GameBoard.onVoxelHover, 40, gameBoard, mapInterface, gridOffset, lastVoxelHovered,
               selectedVoxel, wallHovered, cursorPosition, scale);

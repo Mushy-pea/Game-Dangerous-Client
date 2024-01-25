@@ -13,19 +13,19 @@ function updateGridOffset(event : KeyboardEvent, gridOffset : GridOffset,
   let newU_Max = gridOffset.uMax;
   let newV_Min = gridOffset.vMin;
   let newV_Max = gridOffset.vMax;
-  if (event.code === "KeyW") {
+  if (event.code === "ArrowUp") {
     newU_Min -= step;
     newU_Max -= step;
   }
-  else if (event.code === "KeyS") {
+  else if (event.code === "ArrowDown") {
     newU_Min += step;
     newU_Max += step;
   }
-  else if (event.code === "KeyA") {
+  else if (event.code === "ArrowLeft") {
     newV_Min -= step;
     newV_Max -= step;
   }
-  else if (event.code === "KeyD") {
+  else if (event.code === "ArrowRight") {
     newV_Min += step;
     newV_Max += step;
   }
@@ -132,7 +132,7 @@ function captureCursor(canvas : HTMLCanvasElement, event : MouseEvent, position 
 function mapCursorToGrid(position : CursorPosition, scale : number) : GridPosition {
   const u = Math.trunc(position.y / scale);
   const v = Math.trunc(position.x / scale);
-  return {w: 0, u: u, v: v};
+  return {w: 0, u: u, v: v, outOfBounds: false};
 }
 
 // This function maps the cursor position to a wall element within a voxel.
@@ -185,7 +185,10 @@ function onVoxelHover(gameBoard : CanvasRenderingContext2D, mapInterface : API_T
   gridPosition.u += gridOffset.uMin;
   gridPosition.v += gridOffset.vMin;
   if (gridPosition.u < 0 || gridPosition.u > gridOffset.uMax ||
-      gridPosition.v < 0 || gridPosition.v > gridOffset.vMax) { return }
+      gridPosition.v < 0 || gridPosition.v > gridOffset.vMax) {
+    lastVoxelHovered.outOfBounds = true;
+    return;
+  }
 
   if (gridPosition.u !== lastVoxelHovered.u || gridPosition.v !== lastVoxelHovered.v) {
     gameBoard.fillStyle = "rgba(0, 0, 192, 0.5)";
@@ -211,6 +214,7 @@ function onVoxelHover(gameBoard : CanvasRenderingContext2D, mapInterface : API_T
       `Cursor is over voxel (u, v): (${lastVoxelHovered.u}, ${lastVoxelHovered.v})`;
   }
   wallHovered.wall = findWallHovered(lastVoxelHovered, gridOffset, cursorPosition, scale);
+  lastVoxelHovered.outOfBounds = false;
 }
 
 // This function implements the UI actions for selecting an active voxel on the game board and
@@ -220,6 +224,7 @@ async function selectVoxel(gameBoard : CanvasRenderingContext2D,
                            gridOffset : GridOffset, lastVoxelHovered : GridPosition,
                            selectedVoxel : GridPosition, wallHovered : {wall : string},
                            scale : number) : Promise<boolean> {
+  if (lastVoxelHovered.outOfBounds === true) { return }
   const lastVoxelHoveredRend = {
     u: lastVoxelHovered.u - gridOffset.uMin,
     v: lastVoxelHovered.v - gridOffset.vMin
@@ -256,13 +261,13 @@ async function selectVoxel(gameBoard : CanvasRenderingContext2D,
     if (success) {
       drawGrid(gameBoard, mapInterface, gridOffset, selectedVoxel.u, selectedVoxel.v, scale,
                "singular");
-      return new Promise<boolean>((resolve, reject) => {resolve(true)});
     }
     else {
       return new Promise<boolean>((resolve, reject) => {reject(false)});
     }
   }
   inspectVoxel(mapInterface, selectedVoxel);
+  return new Promise<boolean>((resolve, reject) => {resolve(true)});
 }
 
 export { updateGridOffset, captureCursor, drawGrid, onVoxelHover, selectVoxel };

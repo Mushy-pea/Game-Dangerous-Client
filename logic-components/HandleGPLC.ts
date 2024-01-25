@@ -1,15 +1,31 @@
 import * as API_Types from "../API_Types.js";
+import * as ServerInterface from "./ServerInterface.js";
 
 type SymbolValue = {
-  symbol: string,
-  value: number,
-  diff: number
+  symbol : string,
+  value : number,
+  diff : number
+};
+
+type ConsoleState = {
+  view : string,
+  patchState : SymbolValue[]
 };
 
 const nullSymbolValue = {
   symbol: "null",
   value: 0,
   diff: 0
+};
+
+const consoleState : ConsoleState = {
+  view: "",
+  patchState: []
+};
+
+const nullReturn = {
+  program: API_Types.nullGPLC_Program,
+  diff: [nullSymbolValue]
 };
 
 function readSourceValues(source : API_Types.Token[]) : SymbolValue[] {
@@ -69,7 +85,52 @@ function compareValues(sourceValues : SymbolValue[], bytecodeValues : SymbolValu
   else { return null }
 }
 
-//function mergeProgramDiff(source : API_Types.Token[], )
+async function inspectProgram(obj : API_Types.ObjGrid)
+                             : Promise<{program : API_Types.GPLC_Program, diff : SymbolValue[]}> {
+  let deployedName;
+  if (obj.programName === "null" || obj.programName === "") {
+    return new Promise<{program : API_Types.GPLC_Program, diff : SymbolValue[]}>
+    ((resolve) => { resolve(nullReturn) });
+  }
+  else {
+    deployedName = ((obj.programName).split(":"))[0];
+  }  
+  let programSet;
+  try {
+    programSet = await ServerInterface.serverReadRequest({
+      keyword: "GPLC",
+      arguments: ["list", "null"]
+    });
+  }
+  catch(error) {
+    window.alert(`inspectProgram(point 1) : It appears there is a problem with the server : ${error}`);
+    return new Promise<{program : API_Types.GPLC_Program, diff : SymbolValue[]}>((resolve, reject) => {
+      reject(nullReturn);
+    });
+  }
+  const i = programSet.findIndex((element) => {
+    if (element === deployedName) { return true }
+    else { return false }
+  });
+  let sourceProgram;
+  try {
+    if (i >= 0) {
+      sourceProgram = await ServerInterface.getProgram(i);
+    }
+    else { throw new Error(`No matching program found.`) }
+  }
+  catch(error) {
+    window.alert(`inspectProgram(point 2) : It appears there is a problem with the server : ${error}`);
+    return new Promise<{program : API_Types.GPLC_Program, diff : SymbolValue[]}>((resolve, reject) => {
+      reject(nullReturn);
+    });
+  }
+  const diff = checkProgramDiff(sourceProgram, obj);
+  return new Promise<{program : API_Types.GPLC_Program, diff : SymbolValue[]}>((resolve) => {
+    if (diff !== null) { resolve({program: sourceProgram, diff: diff}) }
+    else { resolve(nullReturn) }
+  });
+}
 
 function formatCode(source : API_Types.Token[]) : string {
   let codeToRender = "";
@@ -84,5 +145,48 @@ function formatCode(source : API_Types.Token[]) : string {
   return codeToRender;
 }
 
-export { checkProgramDiff, formatCode, SymbolValue, nullSymbolValue };
+async function interpretConsole(input : string) : Promise<API_Types.Token[]> {
+  console.log("interpretConsole called.");
+  const output : API_Types.Token[] = Array(0);
+  const command = input.split(" ");
+  const keyword = command[0];
+  const arg1 = command[1];
+  const arg2 = command[2];
+  const arg3 = command[3];
+  if (keyword === "list") {
+    let programSet;
+    try {
+      programSet = await ServerInterface.serverReadRequest({
+        keyword: "GPLC",
+        arguments: ["list", "null"]
+      });
+    }
+    catch(error) {
+      window.alert(`interpretConsole : It appears there is a problem with the server : ${error}`);
+    }
+    output.push({
+      line: 1,
+      column: 0,
+      content: "programSet:",
+      textColour: "Black"
+    });
+    let line = 2;
+    programSet.forEach((programName) => {
+      output.push({
+        line: line,
+        column: 0,
+        content: programName,
+        textColour: "Black"
+      });
+      line++;
+    });
+    return new Promise<API_Types.Token[]>((resolve) => { resolve(output.reverse()) });
+  }
+  else {
+    return new Promise<API_Types.Token[]>((resolve) => { resolve([]) });
+  }
+}
+
+export { inspectProgram, formatCode, interpretConsole, SymbolValue, nullSymbolValue, consoleState,
+         nullReturn };
 

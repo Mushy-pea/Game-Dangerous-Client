@@ -6,7 +6,8 @@ type CursorPosition = {
 type GridPosition = {
   w : number,
   u : number,
-  v : number
+  v : number,
+  outOfBounds : boolean
 };
 
 type GridOffset = {
