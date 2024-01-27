@@ -1,13 +1,12 @@
 import * as ServerInterface from "./logic-components/ServerInterface.js";
 import * as GameBoard from "./UI-components/GameBoard.js";
-import { formatCode, interpretConsole } from "./logic-components/HandleGPLC.js";
+import { formatConsoleOutput, interpretConsole } from "./logic-components/HandleGPLC.js";
 
 async function checkConsole() : Promise<boolean> {
-  const GPLC_Console = <HTMLTextAreaElement>document.getElementById("GPLC_Console");
-  const GPLC_Code = document.getElementById("GPLC_Code");
-  const consoleOutput = await interpretConsole(GPLC_Console.value.trimEnd());
-  GPLC_Code.innerHTML = formatCode(consoleOutput);
-  GPLC_Console.value = "";
+  const GPLC_ConsoleInput = <HTMLTextAreaElement>document.getElementById("GPLC_ConsoleInput");
+  const GPLC_ConsoleOutput = document.getElementById("GPLC_ConsoleOutput");
+  GPLC_ConsoleOutput.innerHTML = await interpretConsole(GPLC_ConsoleInput.value.trimEnd());
+  GPLC_ConsoleInput.value = "";
   return new Promise<boolean>((resolve) => { resolve(true) });
 }
 

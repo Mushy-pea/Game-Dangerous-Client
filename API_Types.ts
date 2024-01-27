@@ -43,6 +43,13 @@ type Token = {
   textColour : string
 };
 
+const nullToken = {
+  line: 0,
+  column: 0,
+  content: "null",
+  textColour: "null"
+};
+
 type GPLC_Program = {
   name : string,
   hash : string,
@@ -73,5 +80,5 @@ type MapAccessor = {
 };
 
 export { Command, ObjPlace, WallGrid, FloorGrid, ObjGrid, GPLC_Program, Token, MapAccessor,
-         nullGPLC_Program };
+         nullGPLC_Program, nullToken };
 

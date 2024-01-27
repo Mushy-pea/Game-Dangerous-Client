@@ -1,5 +1,5 @@
 import * as API_Types from "../API_Types.js";
-import {  inspectProgram, formatCode, interpretConsole, nullReturn }
+import {  inspectProgram, formatConsoleOutput, interpretConsole, nullReturn }
        from "../logic-components/HandleGPLC.js";
 import { GridPosition } from "./UI_Types.js";
 
@@ -10,8 +10,7 @@ async function inspectVoxel(mapInterface : API_Types.MapAccessor, selectedVoxel 
   const wallTextures = document.getElementById("wallTextures");
   const objPlace = document.getElementById("objPlace");
   const objGrid = document.getElementById("objGrid");
-  const GPLC_Console = <HTMLTextAreaElement>document.getElementById("GPLC_Console");
-  const GPLC_Code = document.getElementById("GPLC_Code");
+  const GPLC_ConsoleOutput = document.getElementById("GPLC_ConsoleOutput");
   const floorGrid = document.getElementById("floorGrid");
 
   selectedVoxelId.innerText = `Selected voxel (u, v): (${selectedVoxel.u}, ${selectedVoxel.v})`;
@@ -69,11 +68,10 @@ async function inspectVoxel(mapInterface : API_Types.MapAccessor, selectedVoxel 
     </div>
     }`;
   if (programWithDiff === nullReturn) {
-    GPLC_Code.innerHTML = "";
+    GPLC_ConsoleOutput.innerHTML = "";
   }
   else {
-    const codeToRender = formatCode(JSON.parse(programWithDiff.program.source));
-    GPLC_Code.innerHTML = codeToRender;
+    GPLC_ConsoleOutput.innerHTML = formatConsoleOutput(JSON.parse(programWithDiff.program.source));
   }
   return new Promise<boolean>((resolve) => { resolve(true) });
 }

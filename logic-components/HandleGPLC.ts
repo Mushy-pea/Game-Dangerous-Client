@@ -7,25 +7,29 @@ type SymbolValue = {
   diff : number
 };
 
-type ConsoleState = {
-  view : string,
-  patchState : SymbolValue[]
-};
-
 const nullSymbolValue = {
   symbol: "null",
   value: 0,
   diff: 0
 };
 
-const consoleState : ConsoleState = {
-  view: "",
-  patchState: []
-};
-
 const nullReturn = {
   program: API_Types.nullGPLC_Program,
   diff: [nullSymbolValue]
+};
+
+type ConsoleState = {
+  programSet : string[],
+  programIndex : number,
+  program : API_Types.GPLC_Program,
+  patchState : SymbolValue[]
+};
+
+const consoleState : ConsoleState = {
+  programSet: [],
+  programIndex: 0,
+  program: null,
+  patchState: []
 };
 
 function readSourceValues(source : API_Types.Token[]) : SymbolValue[] {
@@ -132,7 +136,7 @@ async function inspectProgram(obj : API_Types.ObjGrid)
   });
 }
 
-function formatCode(source : API_Types.Token[]) : string {
+function formatConsoleOutput(source : API_Types.Token[]) : string {
   let codeToRender = "";
   for (let i = source.length - 1; i >= 0; i--) {
     let tokenToRender = "";
@@ -145,48 +149,84 @@ function formatCode(source : API_Types.Token[]) : string {
   return codeToRender;
 }
 
-async function interpretConsole(input : string) : Promise<API_Types.Token[]> {
-  console.log("interpretConsole called.");
+async function listPrograms() : Promise<string> {
+  let programList;
+  const programSet = Array(0);
   const output : API_Types.Token[] = Array(0);
+  try {
+    programList = await ServerInterface.serverReadRequest({
+      keyword: "GPLC",
+      arguments: ["list", "null"]
+    });
+  }
+  catch(error) {
+    window.alert(`listPrograms : It appears there is a problem with the server : ${error}`);
+    return new Promise<string>((resolve) => { resolve("") });
+  }
+  output.push({
+    line: 1,
+    column: 0,
+    content: "programSet:",
+    textColour: "Black"
+  });
+  let line = 2;
+  programList.forEach((programName) => {
+    output.push({
+      line: line,
+      column: 0,
+      content: programName,
+      textColour: "Black"
+    });
+    programSet.push(programName);
+    line++;
+  });
+  consoleState.programSet = programSet;
+  return new Promise<string>((resolve) => { resolve(formatConsoleOutput(output.reverse())) });
+}
+
+async function viewProgram(programName : string) : Promise<string> {
+  const i = consoleState.programSet.findIndex((element) => {
+    if (element === programName) { return true }
+    else { return false }
+  });
+  if (i < 0) {
+    window.alert(`viewProgram : ${programName} is not in the set of programs currently held by the server.`);
+    return new Promise<string>((resolve) => { resolve("") });
+  }
+  let program;
+  try {
+    program = await ServerInterface.getProgram(i);
+  }
+  catch(error) {
+    window.alert(`viewProgram : It appears there is a problem with the server : ${error}`);
+    return new Promise<string>((resolve) => { resolve("") });
+  }
+  consoleState.programIndex = i;
+  consoleState.program = program;
+  return new Promise<string>((resolve) => {
+    resolve(formatConsoleOutput(JSON.parse(consoleState.program.source)));
+  });
+}
+
+async function patchProgram(mode : string, symbol : string, value : number) {
+  
+}
+
+async function interpretConsole(input : string) : Promise<string> {
   const command = input.split(" ");
   const keyword = command[0];
   const arg1 = command[1];
   const arg2 = command[2];
   const arg3 = command[3];
-  if (keyword === "list") {
-    let programSet;
-    try {
-      programSet = await ServerInterface.serverReadRequest({
-        keyword: "GPLC",
-        arguments: ["list", "null"]
-      });
-    }
-    catch(error) {
-      window.alert(`interpretConsole : It appears there is a problem with the server : ${error}`);
-    }
-    output.push({
-      line: 1,
-      column: 0,
-      content: "programSet:",
-      textColour: "Black"
-    });
-    let line = 2;
-    programSet.forEach((programName) => {
-      output.push({
-        line: line,
-        column: 0,
-        content: programName,
-        textColour: "Black"
-      });
-      line++;
-    });
-    return new Promise<API_Types.Token[]>((resolve) => { resolve(output.reverse()) });
+  if (keyword === "listPrograms") {
+    return listPrograms();
   }
-  else {
-    return new Promise<API_Types.Token[]>((resolve) => { resolve([]) });
+  else if (keyword === "viewProgram") {
+    return viewProgram(arg1);
   }
+  
 }
 
-export { inspectProgram, formatCode, interpretConsole, SymbolValue, nullSymbolValue, consoleState,
+export { inspectProgram, formatConsoleOutput, interpretConsole, SymbolValue, nullSymbolValue, consoleState,
          nullReturn };
 
