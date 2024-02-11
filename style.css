@@ -16,14 +16,14 @@ canvas {
   margin-left: 20px
 }
 
-#GPLC_CodePatch {
+#GPLC_ConsoleInput {
   overflow: auto;
   height: 100px;
   margin: 20px;
   background-color: #FFFFFF
 }
 
-#GPLC_Code {
+#GPLC_ConsoleOutput {
   overflow: auto;
   height: 300px;
   margin: 20px;
@@ -32,5 +32,9 @@ canvas {
 
 .jsonLayer1 {
   margin-left: 20pt
+}
+
+.jsonLayer2 {
+  margin-left: 40pt;
 }
 

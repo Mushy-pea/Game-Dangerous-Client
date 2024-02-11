@@ -136,17 +136,30 @@ async function inspectProgram(obj : API_Types.ObjGrid)
   });
 }
 
+function addBlockAnnotation(oldBlockLevel : number, newBlockLevel : number) : string {
+  let annotation = "<br>";
+  if (newBlockLevel !== oldBlockLevel) { annotation += "<br>" }
+
+  if (newBlockLevel === 0) { annotation += `<span>` }
+  else if (newBlockLevel === 1) { annotation += `<span class="jsonLayer1">` }
+  else if (newBlockLevel === 2) { annotation += `<span class="jsonLayer1">` }
+  else if (newBlockLevel > 2) { annotation += `<span class="jsonLayer2">` }
+  return annotation;
+}
+
 function formatConsoleOutput(source : API_Types.Token[]) : string {
-  let codeToRender = "";
+  let codeToRender = "<span>";
   for (let i = source.length - 1; i >= 0; i--) {
     let tokenToRender = "";
     if (i < source.length - 1 && source[i].line > source[i + 1].line) {
-      tokenToRender += "<br>";
+      tokenToRender += "</span>";
+      tokenToRender += addBlockAnnotation(source[i + 1].blockLevel, source[i].blockLevel);      
     }
     tokenToRender += `<span style="color: ${source[i].textColour}">${source[i].content + " "}</span>`;
     codeToRender += tokenToRender;
   }
-  return codeToRender;
+  console.log(`formatConsoleOutput : codeToRender : ${codeToRender}`);
+  return codeToRender += "</span>";
 }
 
 async function listPrograms() : Promise<string> {
@@ -167,7 +180,8 @@ async function listPrograms() : Promise<string> {
     line: 1,
     column: 0,
     content: "programSet:",
-    textColour: "Black"
+    textColour: "Black",
+    blockLevel: 0
   });
   let line = 2;
   programList.forEach((programName) => {
@@ -175,7 +189,8 @@ async function listPrograms() : Promise<string> {
       line: line,
       column: 0,
       content: programName,
-      textColour: "Black"
+      textColour: "Black",
+      blockLevel: 0
     });
     programSet.push(programName);
     line++;
@@ -212,7 +227,7 @@ async function patchProgram(mode : string, symbol : string, value : number) {
   
 }
 
-async function interpretConsole(input : string) : Promise<string> {
+function interpretConsole(input : string) : Promise<string> {
   const command = input.split(" ");
   const keyword = command[0];
   const arg1 = command[1];

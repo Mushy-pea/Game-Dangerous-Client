@@ -40,7 +40,8 @@ type Token = {
   line : number,
   column : number,
   content : string,
-  textColour : string
+  textColour : string,
+  blockLevel: number
 };
 
 const nullToken = {
