@@ -137,13 +137,22 @@ async function inspectProgram(obj : API_Types.ObjGrid)
 }
 
 function addBlockAnnotation(oldBlockLevel : number, newBlockLevel : number) : string {
-  let annotation = "<br>";
-  if (newBlockLevel !== oldBlockLevel) { annotation += "<br>" }
+  let annotation = "";
+  if (oldBlockLevel === 0 && newBlockLevel === 1) { annotation += " {<br>" }
+  else if (oldBlockLevel === 1 && newBlockLevel === 2) { annotation += "<br>}<br>{<br>" }
+  else if (oldBlockLevel === 1 && newBlockLevel === 3) { annotation += " {<br>" }
+  else if (oldBlockLevel === 2 && newBlockLevel === 0) { annotation += "<br>}" }
+  else if (oldBlockLevel === 2 && newBlockLevel === 5) { annotation += " {<br>" }
+  else if (oldBlockLevel === 3 && newBlockLevel === 4) { annotation += "<br>}<br>{<br>" }
+  else if (oldBlockLevel === 4 && newBlockLevel === 2) { annotation += "<br>}<br>}<br>{<br>"}
+  else if (oldBlockLevel === 5 && newBlockLevel === 6) { annotation += "<br>}<br>{<br>" }
+  else if (oldBlockLevel === 6 && newBlockLevel === 0) { annotation += "<br>}"}
+  else { annotation += "<br>"}
 
   if (newBlockLevel === 0) { annotation += `<span>` }
-  else if (newBlockLevel === 1) { annotation += `<span class="jsonLayer1">` }
-  else if (newBlockLevel === 2) { annotation += `<span class="jsonLayer1">` }
-  else if (newBlockLevel > 2) { annotation += `<span class="jsonLayer2">` }
+  else if (newBlockLevel === 1) { annotation += `<span class="indentLevel1">` }
+  else if (newBlockLevel === 2) { annotation += `<span class="indentLevel1">` }
+  else if (newBlockLevel > 2) { annotation += `<span class="indentLevel2">` }
   return annotation;
 }
 
@@ -158,7 +167,6 @@ function formatConsoleOutput(source : API_Types.Token[]) : string {
     tokenToRender += `<span style="color: ${source[i].textColour}">${source[i].content + " "}</span>`;
     codeToRender += tokenToRender;
   }
-  console.log(`formatConsoleOutput : codeToRender : ${codeToRender}`);
   return codeToRender += "</span>";
 }
 

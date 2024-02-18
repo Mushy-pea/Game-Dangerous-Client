@@ -17,19 +17,19 @@ async function inspectVoxel(mapInterface : API_Types.MapAccessor, selectedVoxel 
 
   const wallGrid : API_Types.WallGrid =
     mapInterface.getWallGrid(selectedVoxel.w, selectedVoxel.u, selectedVoxel.v);
-  wallStructure.innerHTML = `Wall structure: {<br><div class="jsonLayer1">
+  wallStructure.innerHTML = `Wall structure: {<br><div class="indentLevel1">
     u1: ${wallGrid.u1_structure},<br>
     u2: ${wallGrid.u2_structure},<br>
     v1: ${wallGrid.v1_structure},<br>
     v2: ${wallGrid.v2_structure}<br></div>
     }`;
-  wallTextures.innerHTML = `Wall textures: {<br><div class="jsonLayer1">
+  wallTextures.innerHTML = `Wall textures: {<br><div class="indentLevel1">
     u1: ${wallGrid.u1_texture},<br>
     u2: ${wallGrid.u2_texture},<br>
     v1: ${wallGrid.v1_texture},<br>
     v2: ${wallGrid.v2_texture}<br></div>
     }`;
-  objPlace.innerHTML = `Model placed in voxel: {<br><div class="jsonLayer1">
+  objPlace.innerHTML = `Model placed in voxel: {<br><div class="indentLevel1">
     Model ident: ${wallGrid.objPlace.modelIdent},<br>
     u: ${wallGrid.objPlace.u},<br>
     v: ${wallGrid.objPlace.v},<br>
@@ -41,7 +41,7 @@ async function inspectVoxel(mapInterface : API_Types.MapAccessor, selectedVoxel 
   const floor : API_Types.FloorGrid =
     mapInterface.getFloorGrid(selectedVoxel.w,
       Math.floor(selectedVoxel.u / 2), Math.floor(selectedVoxel.v / 2));
-  floorGrid.innerHTML = `Floor grid: {<br><div class="jsonLayer1">
+  floorGrid.innerHTML = `Floor grid: {<br><div class="indentLevel1">
     Height: ${floor.height},<br>
     surface: ${floor.surface}<br></div>
     }`;
@@ -61,7 +61,7 @@ async function inspectVoxel(mapInterface : API_Types.MapAccessor, selectedVoxel 
     programName = (obj.programName).split(":")[0];
     programHash = (obj.programName).split(":")[1];
   }  
-  objGrid.innerHTML = `Object grid: {<br><div class="jsonLayer1">
+  objGrid.innerHTML = `Object grid: {<br><div class="indentLevel1">
     Object type: ${obj.objType}<br>
     Program name: ${programName}<br>
     Program hash: ${programHash}<br>
