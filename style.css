@@ -25,7 +25,7 @@ canvas {
 
 #GPLC_ConsoleOutput {
   overflow: auto;
-  height: 300px;
+  height: 500px;
   margin: 20px;
   background-color: #FFFFFF
 }

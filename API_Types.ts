@@ -41,7 +41,7 @@ type Token = {
   column : number,
   content : string,
   textColour : string,
-  blockLevel: number
+  blockNumber: number
 };
 
 const nullToken = {

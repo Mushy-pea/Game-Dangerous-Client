@@ -22,23 +22,23 @@ type ConsoleState = {
   programSet : string[],
   programIndex : number,
   program : API_Types.GPLC_Program,
-  patchState : SymbolValue[]
+  programDiff : SymbolValue[]
 };
 
 const consoleState : ConsoleState = {
   programSet: [],
   programIndex: 0,
   program: null,
-  patchState: []
+  programDiff: []
 };
 
 function readSourceValues(source : API_Types.Token[]) : SymbolValue[] {
   const initialValues : SymbolValue[] = Array(0);
-  for (let i = source.length - 1; i >= 0; i -= 2) {
+  for (let i = source.length - 1; i >= 0; i -= 3) {
     if (source[i].content === "~") { break }
     initialValues.push({
       symbol: source[i].content,
-      value: parseInt(source[i - 1].content),
+      value: parseInt(source[i - 2].content),
       diff: 0
     });
   }
@@ -136,39 +136,81 @@ async function inspectProgram(obj : API_Types.ObjGrid)
   });
 }
 
-function addBlockAnnotation(oldBlockLevel : number, newBlockLevel : number) : string {
-  let annotation = "";
-  if (oldBlockLevel === 0 && newBlockLevel === 1) { annotation += " {<br>" }
-  else if (oldBlockLevel === 1 && newBlockLevel === 2) { annotation += "<br>}<br>{<br>" }
-  else if (oldBlockLevel === 1 && newBlockLevel === 3) { annotation += " {<br>" }
-  else if (oldBlockLevel === 2 && newBlockLevel === 0) { annotation += "<br>}" }
-  else if (oldBlockLevel === 2 && newBlockLevel === 5) { annotation += " {<br>" }
-  else if (oldBlockLevel === 3 && newBlockLevel === 4) { annotation += "<br>}<br>{<br>" }
-  else if (oldBlockLevel === 4 && newBlockLevel === 2) { annotation += "<br>}<br>}<br>{<br>"}
-  else if (oldBlockLevel === 5 && newBlockLevel === 6) { annotation += "<br>}<br>{<br>" }
-  else if (oldBlockLevel === 6 && newBlockLevel === 0) { annotation += "<br>}"}
-  else { annotation += "<br>"}
+function addBlockAnnotation(oldBlockNumber : number, newBlockNumber : number) : string {
+  let annotation = "<br>";
+  if (newBlockNumber !== oldBlockNumber) { annotation += "<br>" }
 
-  if (newBlockLevel === 0) { annotation += `<span>` }
-  else if (newBlockLevel === 1) { annotation += `<span class="indentLevel1">` }
-  else if (newBlockLevel === 2) { annotation += `<span class="indentLevel1">` }
-  else if (newBlockLevel > 2) { annotation += `<span class="indentLevel2">` }
+  if (newBlockNumber === 0) { annotation += `<span>` }
+  else if (newBlockNumber < 3) { annotation += `<span class="indentLevel1">` }
+  else { annotation += `<span class="indentLevel2">` }
   return annotation;
 }
 
-function formatConsoleOutput(source : API_Types.Token[]) : string {
+function formatConsoleOutput(source : API_Types.Token[], diff : SymbolValue[], codeMode : boolean)
+                            : string {
   let codeToRender = "<span>";
+  let dataBlockIndex = 0;
+  let dataBlockFlag = codeMode;
   for (let i = source.length - 1; i >= 0; i--) {
     let tokenToRender = "";
+    if (source[i].content === "~") { dataBlockFlag = false }
+
+    if (dataBlockFlag === true && (source.length - i) % 3 === 0
+        && diff[dataBlockIndex].diff !== 0) {
+      source[i].content = `${diff[dataBlockIndex].value} (${diff[dataBlockIndex].diff})`;
+      dataBlockIndex++;
+    }
+    else if (dataBlockFlag === true && (source.length - i) % 3 === 0) {
+      dataBlockIndex++;
+    }
+
     if (i < source.length - 1 && source[i].line > source[i + 1].line) {
       tokenToRender += "</span>";
-      tokenToRender += addBlockAnnotation(source[i + 1].blockLevel, source[i].blockLevel);      
+      tokenToRender += addBlockAnnotation(source[i + 1].blockNumber, source[i].blockNumber);
     }
-    tokenToRender += `<span style="color: ${source[i].textColour}">${source[i].content + " "}</span>`;
+    tokenToRender +=
+      `<span style="color: ${source[i].textColour}">${source[i].content + " "}</span>`;
     codeToRender += tokenToRender;
   }
   return codeToRender += "</span>";
 }
+
+// function formatConsoleOutput(source : API_Types.Token[], diff : SymbolValue[], codeMode : boolean)
+//                             : string {
+//   let codeToRender = "<span>";
+//   let dataBlockIndex = 0;
+//   let dataBlockFlag = codeMode;
+//   for (let i = source.length - 1; i >= 0; i--) {
+//     let tokenToRender = "";
+//     if (source[i].content === "~") { dataBlockFlag = false }
+
+//     if (dataBlockFlag === true && (source.length - i) % 3 === 0
+//         && diff[dataBlockIndex].diff !== 0) {
+//       source[i].content = `${diff[dataBlockIndex].value} (${diff[dataBlockIndex].diff})`;
+//       dataBlockIndex++;
+//     }
+//     else if (dataBlockFlag === true && (source.length - i) % 3 === 0) {
+//       dataBlockIndex++;
+//     }
+
+//     if (i < source.length - 1 && source[i].line > source[i + 1].line) {
+//       tokenToRender += "</span>";
+//       tokenToRender += addBlockAnnotation(source[i + 1].blockNumber, source[i].blockNumber);
+//     }
+//     let debugColour = "";
+//     if (source[i].blockNumber === 0) { debugColour = "black" }
+//     else if (source[i].blockNumber === 1) { debugColour = "red" }
+//     else if (source[i].blockNumber === 2) { debugColour = "green" }
+//     else if (source[i].blockNumber === 3) { debugColour = "blue" }
+//     else if (source[i].blockNumber === 4) { debugColour = "yellow" }
+//     else if (source[i].blockNumber === 5) { debugColour = "orange" }
+//     else { debugColour = "purple" }
+//     tokenToRender +=
+//       `<span style="color: ${debugColour}">${source[i].content + " "}</span>`;
+//     codeToRender += tokenToRender;
+//   }
+//   return codeToRender += "</span>";
+// }
 
 async function listPrograms() : Promise<string> {
   let programList;
@@ -189,7 +231,7 @@ async function listPrograms() : Promise<string> {
     column: 0,
     content: "programSet:",
     textColour: "Black",
-    blockLevel: 0
+    blockNumber: 0
   });
   let line = 2;
   programList.forEach((programName) => {
@@ -198,13 +240,14 @@ async function listPrograms() : Promise<string> {
       column: 0,
       content: programName,
       textColour: "Black",
-      blockLevel: 0
+      blockNumber: 0
     });
     programSet.push(programName);
     line++;
   });
   consoleState.programSet = programSet;
-  return new Promise<string>((resolve) => { resolve(formatConsoleOutput(output.reverse())) });
+  return new Promise<string>((resolve) => { resolve(formatConsoleOutput(output.reverse(), [],
+    false)) });
 }
 
 async function viewProgram(programName : string) : Promise<string> {
@@ -224,15 +267,14 @@ async function viewProgram(programName : string) : Promise<string> {
     window.alert(`viewProgram : It appears there is a problem with the server : ${error}`);
     return new Promise<string>((resolve) => { resolve("") });
   }
+  const programLength = JSON.parse(program.source).length;
   consoleState.programIndex = i;
   consoleState.program = program;
+  consoleState.programDiff = Array(programLength).fill(nullSymbolValue);
   return new Promise<string>((resolve) => {
-    resolve(formatConsoleOutput(JSON.parse(consoleState.program.source)));
+    resolve(formatConsoleOutput(JSON.parse(consoleState.program.source), consoleState.programDiff,
+      true));
   });
-}
-
-async function patchProgram(mode : string, symbol : string, value : number) {
-  
 }
 
 function interpretConsole(input : string) : Promise<string> {
@@ -250,6 +292,6 @@ function interpretConsole(input : string) : Promise<string> {
   
 }
 
-export { inspectProgram, formatConsoleOutput, interpretConsole, SymbolValue, nullSymbolValue, consoleState,
-         nullReturn };
+export { inspectProgram, formatConsoleOutput, interpretConsole, SymbolValue, nullSymbolValue,
+         consoleState, nullReturn };
 

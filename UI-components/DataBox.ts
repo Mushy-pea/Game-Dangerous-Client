@@ -71,7 +71,8 @@ async function inspectVoxel(mapInterface : API_Types.MapAccessor, selectedVoxel 
     GPLC_ConsoleOutput.innerHTML = "";
   }
   else {
-    GPLC_ConsoleOutput.innerHTML = formatConsoleOutput(JSON.parse(programWithDiff.program.source));
+    GPLC_ConsoleOutput.innerHTML =
+      formatConsoleOutput(JSON.parse(programWithDiff.program.source), programWithDiff.diff, true);
   }
   return new Promise<boolean>((resolve) => { resolve(true) });
 }
