@@ -13,11 +13,6 @@ const nullSymbolValue = {
   diff: 0
 };
 
-const nullReturn = {
-  program: API_Types.nullGPLC_Program,
-  diff: [nullSymbolValue]
-};
-
 type ConsoleState = {
   programSet : string[],
   programIndex : number,
@@ -28,6 +23,13 @@ type ConsoleState = {
 const consoleState : ConsoleState = {
   programSet: [],
   programIndex: 0,
+  program: null,
+  programDiff: []
+};
+
+const nullConsoleState = {
+  programSet: [],
+  programIndex: -1,
   program: null,
   programDiff: []
 };
@@ -90,11 +92,11 @@ function compareValues(sourceValues : SymbolValue[], bytecodeValues : SymbolValu
 }
 
 async function inspectProgram(obj : API_Types.ObjGrid)
-                             : Promise<{program : API_Types.GPLC_Program, diff : SymbolValue[]}> {
+                             : Promise<ConsoleState> {
   let deployedName;
   if (obj.programName === "null" || obj.programName === "") {
-    return new Promise<{program : API_Types.GPLC_Program, diff : SymbolValue[]}>
-    ((resolve) => { resolve(nullReturn) });
+    return new Promise<ConsoleState>
+    ((resolve) => { resolve(nullConsoleState) });
   }
   else {
     deployedName = ((obj.programName).split(":"))[0];
@@ -108,8 +110,8 @@ async function inspectProgram(obj : API_Types.ObjGrid)
   }
   catch(error) {
     window.alert(`inspectProgram(point 1) : It appears there is a problem with the server : ${error}`);
-    return new Promise<{program : API_Types.GPLC_Program, diff : SymbolValue[]}>((resolve, reject) => {
-      reject(nullReturn);
+    return new Promise<ConsoleState>((resolve, reject) => {
+      reject(nullConsoleState);
     });
   }
   const i = programSet.findIndex((element) => {
@@ -125,14 +127,19 @@ async function inspectProgram(obj : API_Types.ObjGrid)
   }
   catch(error) {
     window.alert(`inspectProgram(point 2) : It appears there is a problem with the server : ${error}`);
-    return new Promise<{program : API_Types.GPLC_Program, diff : SymbolValue[]}>((resolve, reject) => {
-      reject(nullReturn);
+    return new Promise<ConsoleState>((resolve, reject) => {
+      reject(nullConsoleState);
     });
   }
   const diff = checkProgramDiff(sourceProgram, obj);
-  return new Promise<{program : API_Types.GPLC_Program, diff : SymbolValue[]}>((resolve) => {
-    if (diff !== null) { resolve({program: sourceProgram, diff: diff}) }
-    else { resolve(nullReturn) }
+  return new Promise<ConsoleState>((resolve) => {
+    if (diff !== null) {resolve({
+      programSet: [],
+      programIndex: i,
+      program: sourceProgram,
+      programDiff: diff
+    })}
+    else { resolve(nullConsoleState) }
   });
 }
 
@@ -151,6 +158,7 @@ function formatConsoleOutput(source : API_Types.Token[], diff : SymbolValue[], c
   let codeToRender = "<span>";
   let dataBlockIndex = 0;
   let dataBlockFlag = codeMode;
+  let lastBlockNumber = source[source.length - 1].blockNumber;
   for (let i = source.length - 1; i >= 0; i--) {
     let tokenToRender = "";
     if (source[i].content === "~") { dataBlockFlag = false }
@@ -166,7 +174,8 @@ function formatConsoleOutput(source : API_Types.Token[], diff : SymbolValue[], c
 
     if (i < source.length - 1 && source[i].line > source[i + 1].line) {
       tokenToRender += "</span>";
-      tokenToRender += addBlockAnnotation(source[i + 1].blockNumber, source[i].blockNumber);
+      tokenToRender += addBlockAnnotation(lastBlockNumber, source[i].blockNumber);
+      lastBlockNumber = source[i].blockNumber;
     }
     tokenToRender +=
       `<span style="color: ${source[i].textColour}">${source[i].content + " "}</span>`;
@@ -174,43 +183,6 @@ function formatConsoleOutput(source : API_Types.Token[], diff : SymbolValue[], c
   }
   return codeToRender += "</span>";
 }
-
-// function formatConsoleOutput(source : API_Types.Token[], diff : SymbolValue[], codeMode : boolean)
-//                             : string {
-//   let codeToRender = "<span>";
-//   let dataBlockIndex = 0;
-//   let dataBlockFlag = codeMode;
-//   for (let i = source.length - 1; i >= 0; i--) {
-//     let tokenToRender = "";
-//     if (source[i].content === "~") { dataBlockFlag = false }
-
-//     if (dataBlockFlag === true && (source.length - i) % 3 === 0
-//         && diff[dataBlockIndex].diff !== 0) {
-//       source[i].content = `${diff[dataBlockIndex].value} (${diff[dataBlockIndex].diff})`;
-//       dataBlockIndex++;
-//     }
-//     else if (dataBlockFlag === true && (source.length - i) % 3 === 0) {
-//       dataBlockIndex++;
-//     }
-
-//     if (i < source.length - 1 && source[i].line > source[i + 1].line) {
-//       tokenToRender += "</span>";
-//       tokenToRender += addBlockAnnotation(source[i + 1].blockNumber, source[i].blockNumber);
-//     }
-//     let debugColour = "";
-//     if (source[i].blockNumber === 0) { debugColour = "black" }
-//     else if (source[i].blockNumber === 1) { debugColour = "red" }
-//     else if (source[i].blockNumber === 2) { debugColour = "green" }
-//     else if (source[i].blockNumber === 3) { debugColour = "blue" }
-//     else if (source[i].blockNumber === 4) { debugColour = "yellow" }
-//     else if (source[i].blockNumber === 5) { debugColour = "orange" }
-//     else { debugColour = "purple" }
-//     tokenToRender +=
-//       `<span style="color: ${debugColour}">${source[i].content + " "}</span>`;
-//     codeToRender += tokenToRender;
-//   }
-//   return codeToRender += "</span>";
-// }
 
 async function listPrograms() : Promise<string> {
   let programList;
@@ -267,10 +239,27 @@ async function viewProgram(programName : string) : Promise<string> {
     window.alert(`viewProgram : It appears there is a problem with the server : ${error}`);
     return new Promise<string>((resolve) => { resolve("") });
   }
-  const programLength = JSON.parse(program.source).length;
   consoleState.programIndex = i;
   consoleState.program = program;
-  consoleState.programDiff = Array(programLength).fill(nullSymbolValue);
+  consoleState.programDiff = readSourceValues(JSON.parse(program.source));
+  return new Promise<string>((resolve) => {
+    resolve(formatConsoleOutput(JSON.parse(consoleState.program.source), consoleState.programDiff,
+      true));
+  });
+}
+
+function patchProgram(symbol : string, value : number) : Promise<string> {
+  const i = consoleState.programDiff.findIndex((element) => {
+    if (element.symbol === symbol) { return true }
+    else { return false }
+  });
+  if (i < 0) {
+    window.alert(`patchProgram : ${symbol} is not a bound symbol in the scope of this program.`);
+  }
+  else {
+    consoleState.programDiff[i].diff = value - consoleState.programDiff[i].value;
+    consoleState.programDiff[i].value = value;
+  }
   return new Promise<string>((resolve) => {
     resolve(formatConsoleOutput(JSON.parse(consoleState.program.source), consoleState.programDiff,
       true));
@@ -282,16 +271,23 @@ function interpretConsole(input : string) : Promise<string> {
   const keyword = command[0];
   const arg1 = command[1];
   const arg2 = command[2];
-  const arg3 = command[3];
   if (keyword === "listPrograms") {
     return listPrograms();
   }
   else if (keyword === "viewProgram") {
     return viewProgram(arg1);
   }
+  else if (keyword === "patchProgram") {
+    return patchProgram(arg1, parseInt(arg2));
+  }
+  else {
+    return new Promise<string>((resolve) => {
+      resolve("interpretConsole : Invalid keyword.");
+    });
+  }
   
 }
 
 export { inspectProgram, formatConsoleOutput, interpretConsole, SymbolValue, nullSymbolValue,
-         consoleState, nullReturn };
+         consoleState, nullConsoleState };
 

@@ -1,5 +1,5 @@
 import * as API_Types from "../API_Types.js";
-import {  inspectProgram, formatConsoleOutput, interpretConsole, nullReturn }
+import {  inspectProgram, formatConsoleOutput, consoleState, nullConsoleState }
        from "../logic-components/HandleGPLC.js";
 import { GridPosition } from "./UI_Types.js";
 
@@ -47,13 +47,13 @@ async function inspectVoxel(mapInterface : API_Types.MapAccessor, selectedVoxel 
     }`;
   const obj : API_Types.ObjGrid =
     mapInterface.getObjGrid(selectedVoxel.w, selectedVoxel.u, selectedVoxel.v);
-  let programWithDiff;
+  let nextConsoleState;
   try {
-    programWithDiff = await inspectProgram(obj);
+    nextConsoleState = await inspectProgram(obj);
   }
   catch(error) {
     console.log(`inspectVoxel : inspectProgram returned a rejected promise.`);
-    programWithDiff = nullReturn;
+    nextConsoleState = nullConsoleState;
   }
   let programName = "";
   let programHash = "";
@@ -67,12 +67,18 @@ async function inspectVoxel(mapInterface : API_Types.MapAccessor, selectedVoxel 
     Program hash: ${programHash}<br>
     </div>
     }`;
-  if (programWithDiff === nullReturn) {
+  if (nextConsoleState === nullConsoleState) {
+    consoleState.programIndex = -1;
+    consoleState.program = null;
+    consoleState.programDiff = [];
     GPLC_ConsoleOutput.innerHTML = "";
   }
   else {
+    consoleState.programIndex = nextConsoleState.programIndex;
+    consoleState.program = nextConsoleState.program;
+    consoleState.programDiff = nextConsoleState.programDiff;
     GPLC_ConsoleOutput.innerHTML =
-      formatConsoleOutput(JSON.parse(programWithDiff.program.source), programWithDiff.diff, true);
+      formatConsoleOutput(JSON.parse(consoleState.program.source), consoleState.programDiff, true);
   }
   return new Promise<boolean>((resolve) => { resolve(true) });
 }

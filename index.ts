@@ -1,6 +1,6 @@
 import * as ServerInterface from "./logic-components/ServerInterface.js";
 import * as GameBoard from "./UI-components/GameBoard.js";
-import { formatConsoleOutput, interpretConsole } from "./logic-components/HandleGPLC.js";
+import { interpretConsole } from "./logic-components/HandleGPLC.js";
 
 async function checkConsole() : Promise<boolean> {
   const GPLC_ConsoleInput = <HTMLTextAreaElement>document.getElementById("GPLC_ConsoleInput");
