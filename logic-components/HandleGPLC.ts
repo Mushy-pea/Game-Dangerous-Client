@@ -14,6 +14,9 @@ const nullSymbolValue = {
 };
 
 type ConsoleState = {
+  w : number,
+  u : number,
+  v : number,
   programSet : string[],
   programIndex : number,
   program : API_Types.GPLC_Program,
@@ -21,13 +24,19 @@ type ConsoleState = {
 };
 
 const consoleState : ConsoleState = {
+  w: 0,
+  u: 0,
+  v: 0,
   programSet: [],
   programIndex: 0,
   program: null,
   programDiff: []
 };
 
-const nullConsoleState = {
+const nullConsoleState : ConsoleState = {
+  w: 0,
+  u: 0,
+  v: 0,
   programSet: [],
   programIndex: -1,
   program: null,
@@ -134,6 +143,9 @@ async function inspectProgram(obj : API_Types.ObjGrid)
   const diff = checkProgramDiff(sourceProgram, obj);
   return new Promise<ConsoleState>((resolve) => {
     if (diff !== null) {resolve({
+      w: 0,
+      u: 0,
+      v: 0,
       programSet: [],
       programIndex: i,
       program: sourceProgram,
@@ -168,7 +180,9 @@ function formatConsoleOutput(source : API_Types.Token[], diff : SymbolValue[], c
       source[i].content = `${diff[dataBlockIndex].value} (${diff[dataBlockIndex].diff})`;
       dataBlockIndex++;
     }
-    else if (dataBlockFlag === true && (source.length - i) % 3 === 0) {
+    else if (dataBlockFlag === true && (source.length - i) % 3 === 0
+             && diff[dataBlockIndex].diff === 0) {
+      source[i].content = `${diff[dataBlockIndex].value}`;
       dataBlockIndex++;
     }
 
@@ -257,12 +271,46 @@ function patchProgram(symbol : string, value : number) : Promise<string> {
     window.alert(`patchProgram : ${symbol} is not a bound symbol in the scope of this program.`);
   }
   else {
-    consoleState.programDiff[i].diff = value - consoleState.programDiff[i].value;
     consoleState.programDiff[i].value = value;
+    consoleState.programDiff[i].diff = 0;
   }
   return new Promise<string>((resolve) => {
     resolve(formatConsoleOutput(JSON.parse(consoleState.program.source), consoleState.programDiff,
       true));
+  });
+}
+
+async function deployProgram(objType : number) : Promise<string> {
+  const bytecode = JSON.parse(consoleState.program.bytecode);
+  let programBlock = 0;
+  let dataBlockIndex = 0;
+  for (let i = 0; i < bytecode.length; i++) {
+    if (programBlock === 2) {
+      bytecode[i] = consoleState.programDiff[dataBlockIndex].value;
+      dataBlockIndex++;
+    }
+
+    if (bytecode[i] === 536870911) { programBlock++ }
+  }
+  const programName = `${consoleState.programSet[consoleState.programIndex]}:${consoleState.program.hash}`;
+  const args = ["Obj_grid", `${consoleState.w}`, `${consoleState.u}`, `${consoleState.v}`,
+                `${objType}`, `${programName}`];
+  bytecode.forEach((element) => { args.push(`${element}`) });
+  try {
+    ServerInterface.serverWriteRequest({
+      keyword: "write",
+      arguments: args
+    });
+  }
+  catch(error) {
+    window.alert(`deployProgram : It appears there is a problem with the server : ${error}`);
+    return new Promise<string>((resolve) => {
+      resolve("");
+    });
+  }
+  return new Promise<string>((resolve) => {
+    resolve(`deployProgram : Success.  GPLC program [${programName}] deployed to Object grid\
+(${consoleState.w}, ${consoleState.u}, ${consoleState.v})`);
   });
 }
 
@@ -279,6 +327,9 @@ function interpretConsole(input : string) : Promise<string> {
   }
   else if (keyword === "patchProgram") {
     return patchProgram(arg1, parseInt(arg2));
+  }
+  else if (keyword === "deployProgram") {
+    return deployProgram(parseInt(arg1));
   }
   else {
     return new Promise<string>((resolve) => {

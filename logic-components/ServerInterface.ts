@@ -55,6 +55,33 @@ async function serverReadRequest(command : API_Types.Command) : Promise<any> {
   return result;
 }
 
+// A generalised function that can be used to send write API requests to the server.
+async function serverWriteRequest(command : API_Types.Command) : Promise<boolean> {
+  const commandStr = JSON.stringify(command);
+  let response;
+  try {
+    response = await fetch(baseURL, {
+      method: "POST",
+      headers: {
+      "Content-Type": "application/json"
+    },
+    body: commandStr
+  });
+  }
+  catch(error) {
+    window.alert(`serverWriteRequest : failed : ${error}`);
+  }
+  const result = new Promise<boolean>((resolve, reject) => {
+    if (response.status === 200) {
+      resolve(true);
+    }
+    else {
+      reject(false);
+    }
+  });
+  return result;
+}
+
 // This function loads the initial map state and returns an object containing accessor functions
 // for that state.
 async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number, vMaxFloor : number)
@@ -73,32 +100,6 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
     if (w === 0) { return grid0 }
     else if (w === 1) { return grid1 }
     else { return grid2 }
-  }
-
-  async function serverWriteRequest(command : API_Types.Command) : Promise<boolean> {
-    const commandStr = JSON.stringify(command);
-    let response;
-    try {
-      response = await fetch(baseURL, {
-        method: "POST",
-        headers: {
-        "Content-Type": "application/json"
-      },
-      body: commandStr
-    });
-    }
-    catch(error) {
-      window.alert(`serverWriteRequest : failed : ${error}`);
-    }
-    const result = new Promise<boolean>((resolve, reject) => {
-      if (response.status === 200) {
-        resolve(true);
-      }
-      else {
-        reject(false);
-      }
-    });
-    return result;
   }
 
   const wallGrid0 = await loadMapLayer(0, 0, 0, uMaxWall, vMaxWall, "Wall_grid");
@@ -398,5 +399,5 @@ async function getProgram(fileIndex : Number) : Promise<API_Types.GPLC_Program> 
   return result;
 }
 
-export { loadMap, getProgram, serverReadRequest };
+export { loadMap, getProgram, serverReadRequest, serverWriteRequest };
 

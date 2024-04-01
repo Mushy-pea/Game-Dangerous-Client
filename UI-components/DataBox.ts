@@ -5,6 +5,9 @@ import { GridPosition } from "./UI_Types.js";
 
 async function inspectVoxel(mapInterface : API_Types.MapAccessor, selectedVoxel : GridPosition)
                            : Promise<Boolean> {
+  consoleState.w = selectedVoxel.w;
+  consoleState.u = selectedVoxel.u;
+  consoleState.v = selectedVoxel.v;
   const selectedVoxelId = document.getElementById("selectedVoxel");
   const wallStructure = document.getElementById("wallStructure");
   const wallTextures = document.getElementById("wallTextures");
