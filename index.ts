@@ -1,24 +1,18 @@
 import * as ServerInterface from "./logic-components/ServerInterface.js";
 import * as GameBoard from "./UI-components/GameBoard.js";
+import * as API_Types from "./API_Types.js";
 import { interpretConsole } from "./logic-components/HandleGPLC.js";
 
-async function checkConsole() : Promise<boolean> {
+async function checkConsole(mapInterface : API_Types.MapAccessor) : Promise<boolean> {
   const GPLC_ConsoleInput = <HTMLTextAreaElement>document.getElementById("GPLC_ConsoleInput");
   const GPLC_ConsoleOutput = document.getElementById("GPLC_ConsoleOutput");
-  GPLC_ConsoleOutput.innerHTML = await interpretConsole(GPLC_ConsoleInput.value.trimEnd());
+  GPLC_ConsoleOutput.innerHTML =
+    await interpretConsole(GPLC_ConsoleInput.value.trimEnd(), mapInterface);
   GPLC_ConsoleInput.value = "";
   return new Promise<boolean>((resolve) => { resolve(true) });
 }
 
 async function main() {
-  function handleKeyDown(event : KeyboardEvent) : void {
-    if (event.code === "Enter") { checkConsole() }
-    else {
-      GameBoard.updateGridOffset(event, gridOffset, gameBoard,
-        mapInterface, scale, mapInterface.uMaxWall, mapInterface.vMaxWall);
-    }
-  }
-
   const mapDim = await ServerInterface.serverReadRequest({
     keyword: "metaData",
     arguments: ["null"]
@@ -26,6 +20,14 @@ async function main() {
   const mapInterface = await ServerInterface.loadMap(
     mapDim.uMaxWall, mapDim.vMaxWall, mapDim.uMaxFloor, mapDim.vMaxFloor
   );
+
+  function handleKeyDown(event : KeyboardEvent) : void {
+    if (event.code === "Enter") { checkConsole(mapInterface) }
+    else {
+      GameBoard.updateGridOffset(event, gridOffset, gameBoard,
+        mapInterface, scale, mapInterface.uMaxWall, mapInterface.vMaxWall);
+    }
+  }
 
   const windowWidth = window.innerWidth;
   const windowHeight = window.innerHeight;
@@ -83,7 +85,7 @@ async function main() {
   };
   document.onkeydown = event => handleKeyDown(event);
   GameBoard.drawGrid(gameBoard, mapInterface, gridOffset, 0, 0, scale, "iterative");
-  setInterval(GameBoard.onVoxelHover, 40, gameBoard, mapInterface, gridOffset, lastVoxelHovered,
+  setInterval(GameBoard.onVoxelHover, 33, gameBoard, mapInterface, gridOffset, lastVoxelHovered,
               selectedVoxel, wallHovered, cursorPosition, scale);
 }
 

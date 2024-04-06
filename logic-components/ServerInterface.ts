@@ -317,14 +317,15 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
     });
   };
   const setObjGrid = async (w : number, u : number, v : number,
-                            objType : number, program : number[]) : Promise<boolean> => {
+                            objType : number, programName : string, program : number[])
+                           : Promise<boolean> => {
     let withinBounds = true;
     let writeSuccess, updateSuccess;
     if (w < 0 || w > 2 || u < 0 || u > uMaxWall || v < 0 || v > vMaxWall) {
       withinBounds = false;
     }
     else {
-      const args = ["Obj_grid", `${w}`, `${u}`, `${v}`, `${objType}`];
+      const args = ["Obj_grid", `${w}`, `${u}`, `${v}`, `${objType}`, programName];
       program.forEach((value) => { args.push(`${value}`) });
       const command = {
         keyword: "write",

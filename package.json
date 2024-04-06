@@ -8,6 +8,6 @@
   "license": "Custom",
   "private": false,
   "devDependencies": {
-    "typescript": "^5.1.6"
+    "typescript": "^5.4.4"
   }
 }

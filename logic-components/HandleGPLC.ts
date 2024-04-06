@@ -280,7 +280,8 @@ function patchProgram(symbol : string, value : number) : Promise<string> {
   });
 }
 
-async function deployProgram(objType : number) : Promise<string> {
+async function deployProgram(objType : number, mapInterface : API_Types.MapAccessor)
+                            : Promise<string> {
   const bytecode = JSON.parse(consoleState.program.bytecode);
   let programBlock = 0;
   let dataBlockIndex = 0;
@@ -293,28 +294,41 @@ async function deployProgram(objType : number) : Promise<string> {
     if (bytecode[i] === 536870911) { programBlock++ }
   }
   const programName = `${consoleState.programSet[consoleState.programIndex]}:${consoleState.program.hash}`;
-  const args = ["Obj_grid", `${consoleState.w}`, `${consoleState.u}`, `${consoleState.v}`,
-                `${objType}`, `${programName}`];
-  bytecode.forEach((element) => { args.push(`${element}`) });
   try {
-    ServerInterface.serverWriteRequest({
-      keyword: "write",
-      arguments: args
-    });
+    await mapInterface.setObjGrid(consoleState.w, consoleState.u, consoleState.v, objType,
+                                  programName, bytecode);
   }
   catch(error) {
     window.alert(`deployProgram : It appears there is a problem with the server : ${error}`);
     return new Promise<string>((resolve) => {
       resolve("");
     });
-  }
+  }  
   return new Promise<string>((resolve) => {
     resolve(`deployProgram : Success.  GPLC program [${programName}] deployed to Object grid\
 (${consoleState.w}, ${consoleState.u}, ${consoleState.v})`);
   });
 }
 
-function interpretConsole(input : string) : Promise<string> {
+async function chgObjType(objType : number, mapInterface : API_Types.MapAccessor) : Promise<string> {
+  const obj : API_Types.ObjGrid =
+    mapInterface.getObjGrid(consoleState.w, consoleState.u, consoleState.v);
+  try {
+    await mapInterface.setObjGrid(consoleState.w, consoleState.u, consoleState.v, objType,
+                                  obj.programName, obj.program);
+  }
+  catch(error) {
+    window.alert(`chgObjType : It appears there is a problem with the server : ${error}`);
+    return new Promise<string>((resolve) => {
+      resolve("");
+    });
+  }
+  return new Promise<string>((resolve) => {
+    resolve("chgObjType : Success.");
+  });
+}
+
+function interpretConsole(input : string, mapInterface : API_Types.MapAccessor) : Promise<string> {
   const command = input.split(" ");
   const keyword = command[0];
   const arg1 = command[1];
@@ -329,7 +343,10 @@ function interpretConsole(input : string) : Promise<string> {
     return patchProgram(arg1, parseInt(arg2));
   }
   else if (keyword === "deployProgram") {
-    return deployProgram(parseInt(arg1));
+    return deployProgram(parseInt(arg1), mapInterface);
+  }
+  else if (keyword === "chgObjType") {
+    return chgObjType(parseInt(arg1), mapInterface);
   }
   else {
     return new Promise<string>((resolve) => {
