@@ -22,7 +22,7 @@ async function main() {
   );
 
   function handleKeyDown(event : KeyboardEvent) : void {
-    if (event.code === "Enter") { checkConsole(mapInterface) }
+    if (event.key === "Enter") { checkConsole(mapInterface) }
     else {
       GameBoard.updateGridOffset(event, gridOffset, gameBoard,
         mapInterface, scale, mapInterface.uMaxWall, mapInterface.vMaxWall);
@@ -68,6 +68,7 @@ async function main() {
   const lastVoxelHovered = {w: 0, u: 0, v: 0, outOfBounds: false};
   const selectedVoxel = {w: 0, u: 0, v: 0, outOfBounds: false};
   const gridOffset = {
+    w: 0,
     uMin: 0, uMax: Math.trunc(boardHeight / scale) - 1,
     vMin: 0, vMax: Math.trunc(boardWidth / scale) - 1
   };

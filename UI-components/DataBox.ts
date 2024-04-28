@@ -16,7 +16,7 @@ async function inspectVoxel(mapInterface : API_Types.MapAccessor, selectedVoxel 
   const GPLC_ConsoleOutput = document.getElementById("GPLC_ConsoleOutput");
   const floorGrid = document.getElementById("floorGrid");
 
-  selectedVoxelId.innerText = `Selected voxel (u, v): (${selectedVoxel.u}, ${selectedVoxel.v})`;
+  selectedVoxelId.innerText = `Selected voxel (w, u, v): (${selectedVoxel.w}, ${selectedVoxel.u}, ${selectedVoxel.v})`;
 
   const wallGrid : API_Types.WallGrid =
     mapInterface.getWallGrid(selectedVoxel.w, selectedVoxel.u, selectedVoxel.v);

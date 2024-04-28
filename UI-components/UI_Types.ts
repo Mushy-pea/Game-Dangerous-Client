@@ -11,6 +11,7 @@ type GridPosition = {
 };
 
 type GridOffset = {
+  w : number,
   uMin : number,
   uMax : number,
   vMin : number,

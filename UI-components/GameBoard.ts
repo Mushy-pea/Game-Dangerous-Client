@@ -9,30 +9,35 @@ function updateGridOffset(event : KeyboardEvent, gridOffset : GridOffset,
                           mapInterface : API_Types.MapAccessor,
                           scale : number, mapU_Max : number, mapV_Max : number) : void {
   const step = 1;
+  let new_W = gridOffset.w;
   let newU_Min = gridOffset.uMin;
   let newU_Max = gridOffset.uMax;
   let newV_Min = gridOffset.vMin;
   let newV_Max = gridOffset.vMax;
-  if (event.code === "ArrowUp") {
+  if (event.key === "ArrowUp" && event.ctrlKey) {
     newU_Min -= step;
     newU_Max -= step;
   }
-  else if (event.code === "ArrowDown") {
+  else if (event.key === "ArrowDown" && event.ctrlKey) {
     newU_Min += step;
     newU_Max += step;
   }
-  else if (event.code === "ArrowLeft") {
+  else if (event.key === "ArrowLeft" && event.ctrlKey) {
     newV_Min -= step;
     newV_Max -= step;
   }
-  else if (event.code === "ArrowRight") {
+  else if (event.key === "ArrowRight" && event.ctrlKey) {
     newV_Min += step;
     newV_Max += step;
   }
+  else if (event.key === "+") { new_W ++ }
+  else if (event.key === "_") { new_W -- }
   else { return }
 
-  if (newU_Min < 0 || newU_Max > mapU_Max || newV_Min < 0 || newV_Max > mapV_Max) { return }
+  if (newU_Min < 0 || newU_Max > mapU_Max || newV_Min < 0 || newV_Max > mapV_Max ||
+      new_W < 0 || new_W > 2) { return }
   else {
+    gridOffset.w = new_W;
     gridOffset.uMin = newU_Min;
     gridOffset.uMax = newU_Max;
     gridOffset.vMin = newV_Min;
@@ -98,7 +103,7 @@ function drawGrid(gameBoard : CanvasRenderingContext2D, mapInterface : API_Types
     gameBoard.fillStyle = "rgb(0, 0, 192)";
     while (u <= gridOffset.uMax) {
       const points = generateGrid(u, v, scale, gridOffset);
-      const voxel : API_Types.WallGrid = mapInterface.getWallGrid(0, u, v);
+      const voxel : API_Types.WallGrid = mapInterface.getWallGrid(gridOffset.w, u, v);
       if (voxel !== null) {
         drawVoxel(points, voxel);
       }
@@ -111,7 +116,7 @@ function drawGrid(gameBoard : CanvasRenderingContext2D, mapInterface : API_Types
   }
   else {
     const points = generateGrid(singleU, singleV, scale, gridOffset);
-    const voxel : API_Types.WallGrid = mapInterface.getWallGrid(0, singleU, singleV);
+    const voxel : API_Types.WallGrid = mapInterface.getWallGrid(gridOffset.w, singleU, singleV);
     if (voxel !== null) {
       drawVoxel(points, voxel);
     }
@@ -211,7 +216,7 @@ function onVoxelHover(gameBoard : CanvasRenderingContext2D, mapInterface : API_T
 
     const voxelHovered = document.getElementById("voxelHovered");
     voxelHovered.innerText =
-      `Cursor is over voxel (u, v): (${lastVoxelHovered.u}, ${lastVoxelHovered.v})`;
+      `Cursor is over voxel (w, u, v): (${gridOffset.w}, ${lastVoxelHovered.u}, ${lastVoxelHovered.v})`;
   }
   wallHovered.wall = findWallHovered(lastVoxelHovered, gridOffset, cursorPosition, scale);
   lastVoxelHovered.outOfBounds = false;
@@ -240,6 +245,7 @@ async function selectVoxel(gameBoard : CanvasRenderingContext2D,
   gameBoard.fillStyle = "rgb(0, 0, 192)";
   drawGrid(gameBoard, mapInterface, gridOffset, selectedVoxel.u, selectedVoxel.v, scale,
     "singular");
+  selectedVoxel.w = gridOffset.w;
   selectedVoxel.u = lastVoxelHovered.u;
   selectedVoxel.v = lastVoxelHovered.v;
   if (wallHovered.wall !== "notWall") {
