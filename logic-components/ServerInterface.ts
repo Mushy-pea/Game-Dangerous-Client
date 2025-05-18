@@ -95,13 +95,20 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
     else { return 0 }
   }
   
-  function selectGrid(grid0 : object, grid1: object, grid2 : object, w : number)
+  function selectGrid(grid0 : object, grid1: object, grid2 : object,
+                      grid_1 : object, grid_2 : object, grid_3 : object, w : number)
                      : object {
     if (w === 0) { return grid0 }
     else if (w === 1) { return grid1 }
-    else { return grid2 }
+    else if (w === 2) { return grid2 }
+    else if (w === -1) { return grid_1 }
+    else if (w === -2) { return grid_2 }
+    else { return grid_3 }
   }
 
+  const wallGrid_1 = await loadMapLayer(-1, 0, 0, uMaxWall, vMaxWall, "Wall_grid");
+  const wallGrid_2 = await loadMapLayer(-2, 0, 0, uMaxWall, vMaxWall, "Wall_grid");
+  const wallGrid_3 = await loadMapLayer(-3, 0, 0, uMaxWall, vMaxWall, "Wall_grid");
   const wallGrid0 = await loadMapLayer(0, 0, 0, uMaxWall, vMaxWall, "Wall_grid");
   const wallGrid1 = await loadMapLayer(1, 0, 0, uMaxWall, vMaxWall, "Wall_grid");
   const wallGrid2 = await loadMapLayer(2, 0, 0, uMaxWall, vMaxWall, "Wall_grid");
@@ -119,7 +126,8 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
       return null;
     }
     else {
-      const grid = selectGrid(wallGrid0, wallGrid1, wallGrid2, w);
+      const grid = selectGrid(wallGrid0, wallGrid1, wallGrid2, wallGrid_1, wallGrid_2, wallGrid_3,
+                              w);
       return grid[mapIndices(u, v, vMaxWall, iMaxWall)];
     }
   };
@@ -128,7 +136,8 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
       return null;
     }
     else {
-      const grid = selectGrid(floorGrid0, floorGrid1, floorGrid2, w);
+      const grid = selectGrid(floorGrid0, floorGrid1, floorGrid2, floorGrid0, floorGrid1,
+                              floorGrid2, w);
       return grid[mapIndices(u, v, vMaxFloor, iMaxFloor)];
     }
   };
@@ -137,7 +146,7 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
       return null;
     }
     else {
-      const grid = selectGrid(objGrid0, objGrid1, objGrid2, w);
+      const grid = selectGrid(objGrid0, objGrid1, objGrid2, objGrid0, objGrid1, objGrid2, w);
       return grid[mapIndices(u, v, vMaxWall, iMaxWall)];
     }
   };
@@ -149,7 +158,7 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
     catch(error) {
       window.alert(`updateWallGrid : failed : ${error}`);
     }    
-    const grid = selectGrid(wallGrid0, wallGrid1, wallGrid2, w);
+    const grid = selectGrid(wallGrid0, wallGrid1, wallGrid2, wallGrid_1, wallGrid_2, wallGrid_3, w);
     grid[mapIndices(u, v, vMaxWall, iMaxWall)] = newVoxel[0];
     return new Promise<boolean>((resolve, reject) => {
       if (newVoxel === null) { reject(false) }
@@ -164,7 +173,8 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
     catch(error) {
       window.alert(`updateFloorGrid : failed : ${error}`);
     }    
-    const grid = selectGrid(floorGrid0, floorGrid1, floorGrid2, w);
+    const grid = selectGrid(floorGrid0, floorGrid1, floorGrid2, floorGrid0, floorGrid1, floorGrid2,
+                            w);
     grid[mapIndices(u, v, vMaxFloor, iMaxFloor)] = newVoxel[0];
     return new Promise<boolean>((resolve, reject) => {
       if (newVoxel === null) { reject(false) }
@@ -179,7 +189,7 @@ async function loadMap(uMaxWall : number, vMaxWall : number, uMaxFloor : number,
     catch(error) {
       window.alert(`updateObjGrid : failed : ${error}`);
     }    
-    const grid = selectGrid(objGrid0, objGrid1, objGrid2, w);
+    const grid = selectGrid(objGrid0, objGrid1, objGrid2, objGrid0, objGrid1, objGrid2, w);
     grid[mapIndices(u, v, vMaxWall, iMaxWall)] = newVoxel[0];
     return new Promise<boolean>((resolve, reject) => {
       if (newVoxel === null) { reject(false) }

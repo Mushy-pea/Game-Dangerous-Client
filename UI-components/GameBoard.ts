@@ -252,8 +252,8 @@ function onVoxelHover(gameBoard : CanvasRenderingContext2D, mapInterface : API_T
 async function selectVoxel(gameBoard : CanvasRenderingContext2D,
                            mapInterface : API_Types.MapAccessor,
                            gridOffset : GridOffset, lastVoxelHovered : GridPosition,
-                           selectedVoxel : GridPosition, wallHovered : {wall : string},
-                           scale : number) : Promise<boolean> {
+                           selectedVoxel : GridPosition, wallGridMirrorSwitch : boolean,
+                           wallHovered : {wall : string}, scale : number) : Promise<boolean> {
   if (lastVoxelHovered.outOfBounds === true) { return }
   const lastVoxelHoveredRend = {
     u: lastVoxelHovered.u - gridOffset.uMin,
@@ -297,7 +297,7 @@ async function selectVoxel(gameBoard : CanvasRenderingContext2D,
       return new Promise<boolean>((resolve, reject) => {reject(false)});
     }
   }
-  inspectVoxel(mapInterface, selectedVoxel);
+  inspectVoxel(mapInterface, selectedVoxel, wallGridMirrorSwitch);
   return new Promise<boolean>((resolve, reject) => {resolve(true)});
 }
 

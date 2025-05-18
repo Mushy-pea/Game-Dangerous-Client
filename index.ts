@@ -20,9 +20,30 @@ async function main() {
   const mapInterface = await ServerInterface.loadMap(
     mapDim.uMaxWall, mapDim.vMaxWall, mapDim.uMaxFloor, mapDim.vMaxFloor
   );
+  let wallGridMirrorSwitch = false;
 
   function handleKeyDown(event : KeyboardEvent) : void {
     if (event.key === "Enter") { checkConsole(mapInterface) }
+    else if (event.key === "Home") {
+      wallGridMirrorSwitch = false;
+      try {
+        GameBoard.selectVoxel(gameBoard, mapInterface, gridOffset,
+          lastVoxelHovered, selectedVoxel, false, wallHovered, scale);
+      }
+      catch(error) {
+        console.log(`selectVoxel : failed : ${error}`);
+      }
+    }
+    else if (event.key === "End") {
+      wallGridMirrorSwitch = true;
+      try {
+        GameBoard.selectVoxel(gameBoard, mapInterface, gridOffset,
+          lastVoxelHovered, selectedVoxel, true, wallHovered, scale);
+      }
+      catch(error) {
+        console.log(`selectVoxel : failed : ${error}`);
+      }
+    }
     else {
       GameBoard.updateGridOffset(event, gridOffset, gameBoard,
         mapInterface, scale, mapInterface.uMaxWall, mapInterface.vMaxWall);
@@ -78,7 +99,7 @@ async function main() {
   document.onmousedown = event => {
     try {
       GameBoard.selectVoxel(gameBoard, mapInterface, gridOffset,
-        lastVoxelHovered, selectedVoxel, wallHovered, scale);
+        lastVoxelHovered, selectedVoxel, wallGridMirrorSwitch, wallHovered, scale);
     }
     catch(error) {
       console.log(`selectVoxel : failed : ${error}`);

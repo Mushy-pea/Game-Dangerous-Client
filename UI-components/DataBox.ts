@@ -3,7 +3,18 @@ import {  inspectProgram, formatConsoleOutput, consoleState, nullConsoleState }
        from "../logic-components/HandleGPLC.js";
 import { GridPosition } from "./UI_Types.js";
 
-async function inspectVoxel(mapInterface : API_Types.MapAccessor, selectedVoxel : GridPosition)
+const defObjPlace = {
+  modelIdent : -1,
+  u : 0,
+  v : 0,
+  w : 0,
+  texture : 0,
+  numElem : 0,
+  objFlag : 0
+};
+
+async function inspectVoxel(mapInterface : API_Types.MapAccessor, selectedVoxel : GridPosition,
+                            wallGridMirrorSwitch : boolean)
                            : Promise<Boolean> {
   consoleState.w = selectedVoxel.w;
   consoleState.u = selectedVoxel.u;
@@ -20,6 +31,11 @@ async function inspectVoxel(mapInterface : API_Types.MapAccessor, selectedVoxel 
 
   const wallGrid : API_Types.WallGrid =
     mapInterface.getWallGrid(selectedVoxel.w, selectedVoxel.u, selectedVoxel.v);
+  let wallGridMirror : API_Types.WallGrid =
+    mapInterface.getWallGrid(- (selectedVoxel.w + 1), selectedVoxel.u, selectedVoxel.v);
+  if (wallGridMirror.objPlace === null) {
+    wallGridMirror.objPlace = defObjPlace;
+  }
   wallStructure.innerHTML = `Wall structure: {<br><div class="indentLevel1">
     u1: ${wallGrid.u1_structure},<br>
     u2: ${wallGrid.u2_structure},<br>
@@ -32,14 +48,20 @@ async function inspectVoxel(mapInterface : API_Types.MapAccessor, selectedVoxel 
     v1: ${wallGrid.v1_texture},<br>
     v2: ${wallGrid.v2_texture}<br></div>
     }`;
-  objPlace.innerHTML = `Model placed in voxel: {<br><div class="indentLevel1">
-    Model ident: ${wallGrid.objPlace.modelIdent},<br>
-    u: ${wallGrid.objPlace.u},<br>
-    v: ${wallGrid.objPlace.v},<br>
-    w: ${wallGrid.objPlace.w},<br>
-    Texture: ${wallGrid.objPlace.texture},<br>
-    Number of model elements: ${wallGrid.objPlace.numElem},<br>
-    Object flag: ${wallGrid.objPlace.objFlag}<br></div>
+  let wallGridRef = wallGrid;
+  let wallGridDescriptor = "Non - mirrored";
+  if (wallGridMirrorSwitch) {
+    wallGridRef = wallGridMirror;
+    wallGridDescriptor = "Mirrored";
+  }
+  objPlace.innerHTML = `Model placed in voxel (${wallGridDescriptor}): {<br><div class="indentLevel1">
+    Model ident: ${wallGridRef.objPlace.modelIdent},<br>
+    u: ${wallGridRef.objPlace.u},<br>
+    v: ${wallGridRef.objPlace.v},<br>
+    w: ${wallGridRef.objPlace.w},<br>
+    Texture: ${wallGridRef.objPlace.texture},<br>
+    Number of model elements: ${wallGridRef.objPlace.numElem},<br>
+    Object flag: ${wallGridRef.objPlace.objFlag}<br></div>
     }`;
   const floor : API_Types.FloorGrid =
     mapInterface.getFloorGrid(selectedVoxel.w,
