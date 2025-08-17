@@ -16,6 +16,7 @@ const defObjPlace = {
 async function inspectVoxel(mapInterface : API_Types.MapAccessor, selectedVoxel : GridPosition,
                             wallGridMirrorSwitch : boolean)
                            : Promise<Boolean> {
+
   consoleState.w = selectedVoxel.w;
   consoleState.u = selectedVoxel.u;
   consoleState.v = selectedVoxel.v;
@@ -29,8 +30,11 @@ async function inspectVoxel(mapInterface : API_Types.MapAccessor, selectedVoxel 
 
   selectedVoxelId.innerText = `Selected voxel (w, u, v): (${selectedVoxel.w}, ${selectedVoxel.u}, ${selectedVoxel.v})`;
 
-  const wallGrid : API_Types.WallGrid =
+  let wallGrid : API_Types.WallGrid =
     mapInterface.getWallGrid(selectedVoxel.w, selectedVoxel.u, selectedVoxel.v);
+  if (wallGrid.objPlace === null) {
+    wallGrid.objPlace = defObjPlace;
+  }
   let wallGridMirror : API_Types.WallGrid =
     mapInterface.getWallGrid(- (selectedVoxel.w + 1), selectedVoxel.u, selectedVoxel.v);
   if (wallGridMirror.objPlace === null) {
