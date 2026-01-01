@@ -53,7 +53,7 @@ function updateGridOffset(event : KeyboardEvent, gridOffset : GridOffset,
   }
 }
 
-// These three functions handle drawing the game board component grid.
+// These four functions handle drawing the game board component grid.
 function generateGrid(u : number, v : number, scale : number, gridOffset : GridOffset)
                      : VoxelPoints {
   return {
@@ -65,7 +65,7 @@ function generateGrid(u : number, v : number, scale : number, gridOffset : GridO
   };
 }
 
-function colourCodeVoxel(gameBoard : CanvasRenderingContext2D, object : API_Types.ObjGrid) : void {
+function colourCodeObjVoxel(gameBoard : CanvasRenderingContext2D, object : API_Types.ObjGrid) : void {
   if (object.objType === 0) {
     gameBoard.strokeStyle = "rgb(0, 0, 0)";
     gameBoard.fillStyle = "rgb(0, 0, 0)";
@@ -88,31 +88,55 @@ function colourCodeVoxel(gameBoard : CanvasRenderingContext2D, object : API_Type
   }
 }
 
+function colourCodeFloorVoxel(gameBoard : CanvasRenderingContext2D, floor : API_Types.FloorGrid) {
+  if (floor.surface === "Positive_u") {
+    gameBoard.fillStyle = "rgb(128, 128, 255)"
+  }
+  else if (floor.surface === "Negative_u") {
+    gameBoard.fillStyle = "rgb(255, 128, 128)"
+  }
+  else if (floor.surface === "Positive_v") {
+    gameBoard.fillStyle = "rgb(255, 255, 128)"
+  }
+  else if (floor.surface === "Negative_v") {
+    gameBoard.fillStyle = "rgb(128, 255, 128)"
+  }
+  else if (floor.surface === "Flat") {
+    gameBoard.fillStyle = "rgb(255, 255, 255)"
+  }
+  else {
+    gameBoard.fillStyle = "rgb(100, 100, 100)"
+  }
+}
+
 function drawGrid(gameBoard : CanvasRenderingContext2D, mapInterface : API_Types.MapAccessor,
                   gridOffset : GridOffset | null, singleU : number, singleV : number,
                   scale : number, mode : string) : void {
-  function drawVoxel(points : VoxelPoints, voxel : API_Types.WallGrid) : void {
-    gameBoard.strokeRect(points.boundary[0], points.boundary[1],
-                         points.boundary[2], points.boundary[3]);
-    if (voxel.u1_structure) {
+  function drawVoxel(points : VoxelPoints, wall : API_Types.WallGrid, object : API_Types.ObjGrid,
+                     floor : API_Types.FloorGrid) : void {
+    colourCodeFloorVoxel(gameBoard, floor);
+    gameBoard.fillRect(points.boundary[0], points.boundary[1],
+                       points.boundary[2], points.boundary[3]);
+    colourCodeObjVoxel(gameBoard, object);
+    if (wall.u1_structure) {
       gameBoard.fillRect(points.u1[0], points.u1[1], points.u1[2], points.u1[3]);
     }
     else {
       gameBoard.strokeRect(points.u1[0], points.u1[1], points.u1[2], points.u1[3]);
     }
-    if (voxel.u2_structure) {
+    if (wall.u2_structure) {
       gameBoard.fillRect(points.u2[0], points.u2[1], points.u2[2], points.u2[3]);
     }
     else {
       gameBoard.strokeRect(points.u2[0], points.u2[1], points.u2[2], points.u2[3]);
     }
-    if (voxel.v1_structure) {
+    if (wall.v1_structure) {
       gameBoard.fillRect(points.v1[0], points.v1[1], points.v1[2], points.v1[3]);
     }
     else {
       gameBoard.strokeRect(points.v1[0], points.v1[1], points.v1[2], points.v1[3]);
     }
-    if (voxel.v2_structure) {
+    if (wall.v2_structure) {
       gameBoard.fillRect(points.v2[0], points.v2[1], points.v2[2], points.v2[3]);
     }
     else {
@@ -124,11 +148,12 @@ function drawGrid(gameBoard : CanvasRenderingContext2D, mapInterface : API_Types
     let u = gridOffset.uMin, v = gridOffset.vMin;
     while (u <= gridOffset.uMax) {
       const points = generateGrid(u, v, scale, gridOffset);
-      const voxel : API_Types.WallGrid = mapInterface.getWallGrid(gridOffset.w, u, v);
+      const wall : API_Types.WallGrid = mapInterface.getWallGrid(gridOffset.w, u, v);
       const object : API_Types.ObjGrid = mapInterface.getObjGrid(gridOffset.w, u, v);
-      colourCodeVoxel(gameBoard, object);
-      if (voxel !== null) {
-        drawVoxel(points, voxel);
+      const floor : API_Types.FloorGrid = mapInterface.getFloorGrid(gridOffset.w, Math.floor(u / 2),
+                                                                    Math.floor(v / 2));
+      if (wall !== null) {
+        drawVoxel(points, wall, object, floor);
       }
       v++;
       if (v > gridOffset.vMax) {
@@ -139,11 +164,13 @@ function drawGrid(gameBoard : CanvasRenderingContext2D, mapInterface : API_Types
   }
   else {
     const points = generateGrid(singleU, singleV, scale, gridOffset);
-    const voxel : API_Types.WallGrid = mapInterface.getWallGrid(gridOffset.w, singleU, singleV);
+    const wall : API_Types.WallGrid = mapInterface.getWallGrid(gridOffset.w, singleU, singleV);
     const object : API_Types.ObjGrid = mapInterface.getObjGrid(gridOffset.w, singleU, singleV);
-    colourCodeVoxel(gameBoard, object);
-    if (voxel !== null) {
-      drawVoxel(points, voxel);
+    const floor : API_Types.FloorGrid = mapInterface.getFloorGrid(gridOffset.w, Math.floor(singleU / 2),
+                                                                  Math.floor(singleV / 2));
+    colourCodeObjVoxel(gameBoard, object);
+    if (wall !== null) {
+      drawVoxel(points, wall, object, floor);
     }
   }
 }
