@@ -89,23 +89,23 @@ function colourCodeObjVoxel(gameBoard : CanvasRenderingContext2D, object : API_T
 }
 
 function colourCodeFloorVoxel(gameBoard : CanvasRenderingContext2D, floor : API_Types.FloorGrid) {
-  if (floor.surface === "Positive_u") {
-    gameBoard.fillStyle = "rgb(128, 128, 255)"
-  }
-  else if (floor.surface === "Negative_u") {
-    gameBoard.fillStyle = "rgb(255, 128, 128)"
-  }
-  else if (floor.surface === "Positive_v") {
-    gameBoard.fillStyle = "rgb(255, 255, 128)"
-  }
-  else if (floor.surface === "Negative_v") {
-    gameBoard.fillStyle = "rgb(128, 255, 128)"
-  }
-  else if (floor.surface === "Flat") {
+  if (floor.surface === "Flat") {
     gameBoard.fillStyle = "rgb(255, 255, 255)"
   }
+  else if (floor.surface === "Open") {
+    gameBoard.fillStyle = "rgb(255, 150, 0)"
+  }
+  else if (floor.surface === "FlatMasked") {
+    gameBoard.fillStyle = "rgb(150, 150, 255)"
+  }
+  else if (floor.surface === "OpenMasked") {
+    gameBoard.fillStyle = "rgb(150, 255, 150)"
+  }
+  else if (floor.surface === "Positive_u" || floor.surface === "Negative_u") {
+    gameBoard.fillStyle = "rgb(255, 128, 128)"
+  }
   else {
-    gameBoard.fillStyle = "rgb(100, 100, 100)"
+    gameBoard.fillStyle = "rgb(255, 255, 128)"
   }
 }
 

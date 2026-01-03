@@ -67,12 +67,23 @@ async function inspectVoxel(mapInterface : API_Types.MapAccessor, selectedVoxel 
     Number of model elements: ${wallGridRef.objPlace.numElem},<br>
     Object flag: ${wallGridRef.objPlace.objFlag}<br></div>
     }`;
+  function unmaskFloorGrid(floor : API_Types.FloorGrid) : API_Types.FloorGrid {
+    if (floor.surface === "FlatMasked") {
+      return {height: floor.height, surface: "Flat"}
+    }
+    else if (floor.surface === "OpenMasked") {
+      return {height: floor.height, surface: "Open"}
+    }
+    else {
+      return floor;
+    }
+  }
   const floor : API_Types.FloorGrid =
     mapInterface.getFloorGrid(selectedVoxel.w,
       Math.floor(selectedVoxel.u / 2), Math.floor(selectedVoxel.v / 2));
   floorGrid.innerHTML = `Floor grid: {<br><div class="indentLevel1">
     Height: ${floor.height},<br>
-    surface: ${floor.surface}<br></div>
+    surface: ${unmaskFloorGrid(floor).surface}<br></div>
     }`;
   const obj : API_Types.ObjGrid =
     mapInterface.getObjGrid(selectedVoxel.w, selectedVoxel.u, selectedVoxel.v);
